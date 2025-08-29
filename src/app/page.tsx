@@ -162,7 +162,7 @@ export default function Home() {
           <div className="flex items-center gap-2 p-2">
             <Sigma className="size-7 text-primary" />
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              CalcForge
+              TPSA Calculator
             </h1>
           </div>
         </SidebarHeader>

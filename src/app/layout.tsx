@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'CalcForge',
-  description: 'Create, manage, and use custom calculation templates.',
+  title: 'TPSA Calculator',
+  description: 'The TPSA Calculator.',
 };
 
 export default function RootLayout({
