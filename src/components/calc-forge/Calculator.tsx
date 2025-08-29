@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PlusCircle, Trash2, X, GripVertical, ArrowUp, ArrowDown } from "lucide-react"
+import { PlusCircle, Trash2, X, ArrowUp, ArrowDown } from "lucide-react"
 import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -77,6 +77,28 @@ export default function Calculator({ template, onTemplateChange, values, onValue
     const [movedItem] = newLines.splice(index, 1);
     newLines.splice(newIndex, 0, movedItem);
     onTemplateChange({ ...template, lines: newLines });
+  };
+  
+  const handleMoveEntry = (defId: string, entryId: string, direction: 'up' | 'down') => {
+    const newValues = [...values];
+    const entriesInDef = newValues.filter(v => v.defId === defId);
+    const entryIndexInDef = entriesInDef.findIndex(e => e.id === entryId);
+    
+    if (entryIndexInDef === -1) return;
+
+    const targetIndexInDef = direction === 'up' ? entryIndexInDef - 1 : entryIndexInDef + 1;
+    if (targetIndexInDef < 0 || targetIndexInDef >= entriesInDef.length) return;
+
+    const originalEntry = entriesInDef[entryIndexInDef];
+    const targetEntry = entriesInDef[targetIndexInDef];
+
+    const originalEntryIndexInAll = newValues.findIndex(v => v.id === originalEntry.id);
+    const targetEntryIndexInAll = newValues.findIndex(v => v.id === targetEntry.id);
+    
+    // Swap them in the main values array
+    [newValues[originalEntryIndexInAll], newValues[targetEntryIndexInAll]] = [newValues[targetEntryIndexInAll], newValues[originalEntryIndexInAll]];
+
+    onValuesChange(newValues);
   };
 
 
@@ -155,7 +177,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
 
     const newTotal = categoryTotals.reduce((acc, cat) => acc + cat.total, 0) + percentageLines.reduce((acc, line) => acc + line.total, 0);
 
-    return { calculatedLines: percentageLines, categoryTotals, total: newTotal }
+    return { calculatedLines, categoryTotals, total: newTotal }
   }, [template.lines, values])
 
   const renderInputs = (entry: LineItemEntry) => {
@@ -292,7 +314,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
     }
   }
 
-  const renderEntry = (entry: LineItemEntry) => {
+  const renderEntry = (entry: LineItemEntry, index: number, allEntries: LineItemEntry[]) => {
     let totalForEntry: number;
     if (entry.type === 'percentage') {
        const percentageLine = calculatedLines.find(l => l.id === entry.id);
@@ -304,34 +326,44 @@ export default function Calculator({ template, onTemplateChange, values, onValue
     return (
     <div key={entry.id} className="p-4 border-b last:border-b-0">
        <div className="flex flex-col sm:flex-row items-start gap-4">
-          <div className="flex-1 space-y-2 w-full">
-             <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                    placeholder="Description"
-                    value={entry.name}
-                    onChange={(e) => handleEntryChange(entry.id, "name", e.target.value)}
-                    className="text-base font-medium flex-1"
-                />
-                <Select 
-                  value={entry.type} 
-                  onValueChange={(value) => handleEntryChange(entry.id, "type", value as CalculationType)}
-                >
-                    <SelectTrigger className="w-full sm:w-[150px]">
-                        <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="fixed">Fixed Price</SelectItem>
-                        <SelectItem value="time">Time</SelectItem>
-                        <SelectItem value="weight">Weight (g)</SelectItem>
-                        <SelectItem value="volume">Volume (ml)</SelectItem>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                    </SelectContent>
-                </Select>
-             </div>
-             {renderInputs(entry)}
+          <div className="flex items-start gap-1">
+            <div className="flex flex-col">
+              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => handleMoveEntry(entry.defId, entry.id, 'up')} disabled={index === 0}>
+                  <ArrowUp className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => handleMoveEntry(entry.defId, entry.id, 'down')} disabled={index === allEntries.length - 1}>
+                  <ArrowDown className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1 space-y-2 w-full">
+              <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                      placeholder="Description"
+                      value={entry.name}
+                      onChange={(e) => handleEntryChange(entry.id, "name", e.target.value)}
+                      className="text-base font-medium flex-1"
+                  />
+                  <Select 
+                    value={entry.type} 
+                    onValueChange={(value) => handleEntryChange(entry.id, "type", value as CalculationType)}
+                  >
+                      <SelectTrigger className="w-full sm:w-[150px]">
+                          <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="fixed">Fixed Price</SelectItem>
+                          <SelectItem value="time">Time</SelectItem>
+                          <SelectItem value="weight">Weight (g)</SelectItem>
+                          <SelectItem value="volume">Volume (ml)</SelectItem>
+                          <SelectItem value="percentage">Percentage</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+              {renderInputs(entry)}
+            </div>
           </div>
-          <div className="text-right w-full sm:w-auto">
-             <div className="font-bold text-lg mb-2">{formatCurrency(totalForEntry, template.currency)}</div>
+          <div className="text-right w-full sm:w-auto ml-auto flex items-center gap-2">
+             <div className="font-bold text-lg">{formatCurrency(totalForEntry, template.currency)}</div>
               <Button
                   variant="ghost"
                   size="icon"
@@ -362,8 +394,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
         </div>
 
         {template.lines.map((lineDef, index) => {
-          const entries = values.filter(v => v.defId === lineDef.id);
-          const percentageEntries = values.filter(v => v.type === 'percentage' && v.defId === lineDef.id);
+          const entriesForDef = values.filter(v => v.defId === lineDef.id);
 
           return (
             <Card key={lineDef.id}>
@@ -388,8 +419,8 @@ export default function Calculator({ template, onTemplateChange, values, onValue
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                 {[...entries, ...percentageEntries].length > 0 ? (
-                  [...entries, ...percentageEntries].map(entry => renderEntry(entry))
+                 {entriesForDef.length > 0 ? (
+                  entriesForDef.map((entry, entryIndex) => renderEntry(entry, entryIndex, entriesForDef))
                 ) : (
                   <p className="text-sm text-muted-foreground px-6 pb-4">No entries for {lineDef.name}. Click "Add Entry" to start.</p>
                 )}
@@ -404,7 +435,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
                     <CardTitle className="text-base font-medium">Adjustments</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    {values.filter(v => v.type === 'percentage' && !v.defId).map(entry => renderEntry(entry))}
+                    {values.filter(v => v.type === 'percentage' && !v.defId).map((entry, index, all) => renderEntry(entry, index, all))}
                 </CardContent>
             </Card>
         )}
@@ -506,7 +537,7 @@ function MultiSelect({ options, selected, onChange, className, placeholder = "Se
                 options.map((option) => (
                     <div
                         key={option.value}
-                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent"
+                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent cursor-pointer"
                         onClick={() => {
                             const newSelected = selectedValues.has(option.value)
                             ? selected.filter(v => v !== option.value)
