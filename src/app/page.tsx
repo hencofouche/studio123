@@ -54,7 +54,7 @@ import { Label } from "@/components/ui/label"
 const defaultTemplate: Template = {
   id: 'default',
   name: 'New Calculation',
-  currency: 'USD',
+  currency: 'ZAR',
   lines: []
 }
 
