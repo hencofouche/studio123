@@ -151,34 +151,34 @@ export default function Calculator({ template, onTemplateChange, values, onValue
       if (entry.defId) {
         tempCategoryTotals[entry.defId] = (tempCategoryTotals[entry.defId] || 0) + lineTotal;
       }
-    })
+    });
 
     const currentSubtotal = Object.values(entryTotals).reduce((acc, total) => acc + total, 0);
 
-    const percentageLines: CalculatedLine[] = []
     const percentageEntries = values.filter(entry => entry.type === 'percentage');
-    percentageEntries.forEach((entry) => {
-        let baseTotal = currentSubtotal;
-        if (entry.appliesTo && entry.appliesTo.length > 0) {
-           baseTotal = entry.appliesTo.reduce((acc, appliedId) => acc + (entryTotals[appliedId] || 0), 0);
-        }
-        
-        const percentage = entry.value1 || 0
-        const lineTotal = baseTotal * (percentage / 100)
-        percentageLines.push({ id: entry.id, name: entry.name || "Percentage", total: lineTotal, type: 'percentage' })
-    })
+    const finalPercentageLines: CalculatedLine[] = percentageEntries.map(entry => {
+      let baseTotal = currentSubtotal;
+      if (entry.appliesTo && entry.appliesTo.length > 0) {
+        baseTotal = entry.appliesTo.reduce((acc, appliedId) => acc + (entryTotals[appliedId] || 0), 0);
+      }
+      
+      const percentage = entry.value1 || 0;
+      const lineTotal = baseTotal * (percentage / 100);
+      return { id: entry.id, name: entry.name || "Percentage", total: lineTotal, type: 'percentage' as CalculationType };
+    });
     
-    const categoryTotals = template.lines.map(lineDef => ({
+    const finalCategoryTotals = template.lines.map(lineDef => ({
       id: lineDef.id,
       name: lineDef.name,
       total: tempCategoryTotals[lineDef.id] || 0,
       type: 'fixed' as CalculationType, // type is just for the chart props
     }));
 
-    const newTotal = categoryTotals.reduce((acc, cat) => acc + cat.total, 0) + percentageLines.reduce((acc, line) => acc + line.total, 0);
+    const newTotal = finalCategoryTotals.reduce((acc, cat) => acc + cat.total, 0) + finalPercentageLines.reduce((acc, line) => acc + line.total, 0);
 
-    return { calculatedLines, categoryTotals, total: newTotal }
-  }, [template.lines, values])
+    return { calculatedLines: finalPercentageLines, categoryTotals: finalCategoryTotals, total: newTotal };
+  }, [template.lines, values]);
+
 
   const renderInputs = (entry: LineItemEntry) => {
     const availableLinesForPercentage = values.filter(v => v.type !== 'percentage' && v.id !== entry.id);
