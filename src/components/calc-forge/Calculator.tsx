@@ -164,17 +164,24 @@ export default function Calculator({ template, onTemplateChange, values, onValue
       
       const percentage = entry.value1 || 0;
       const lineTotal = baseTotal * (percentage / 100);
+      entryTotals[entry.id] = lineTotal;
+       if (entry.defId) {
+           tempCategoryTotals[entry.defId] = (tempCategoryTotals[entry.defId] || 0) + lineTotal;
+       }
       return { id: entry.id, name: entry.name || "Percentage", total: lineTotal, type: 'percentage' as CalculationType };
     });
     
-    const finalCategoryTotals = template.lines.map(lineDef => ({
-      id: lineDef.id,
-      name: lineDef.name,
-      total: tempCategoryTotals[lineDef.id] || 0,
-      type: 'fixed' as CalculationType, // type is just for the chart props
-    }));
+    const finalCategoryTotals = template.lines
+      .map(lineDef => ({
+        id: lineDef.id,
+        name: lineDef.name,
+        total: tempCategoryTotals[lineDef.id] || 0,
+        type: 'fixed' as CalculationType, // type is just for the chart props
+      }))
+      .filter(cat => cat.total > 0);
 
-    const newTotal = finalCategoryTotals.reduce((acc, cat) => acc + cat.total, 0) + finalPercentageLines.reduce((acc, line) => acc + line.total, 0);
+
+    const newTotal = Object.values(tempCategoryTotals).reduce((acc, catTotal) => acc + catTotal, 0);
 
     return { calculatedLines: finalPercentageLines, categoryTotals: finalCategoryTotals, total: newTotal };
   }, [template.lines, values]);
