@@ -253,13 +253,14 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                                                   <Checkbox
                                                     checked={field.value?.includes(line.id!)}
                                                     onCheckedChange={(checked) => {
-                                                      return checked
-                                                        ? field.onChange([...(field.value || []), line.id!])
-                                                        : field.onChange(
-                                                            field.value?.filter(
+                                                      setTimeout(() => {
+                                                        const newValue = checked
+                                                          ? [...(field.value || []), line.id!]
+                                                          : (field.value || []).filter(
                                                               (value) => value !== line.id
-                                                            )
-                                                          )
+                                                            );
+                                                        field.onChange(newValue);
+                                                      }, 0);
                                                     }}
                                                   />
                                                 </FormControl>
