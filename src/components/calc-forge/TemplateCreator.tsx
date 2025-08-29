@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils"
 const lineItemSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Name is required"),
-  type: z.enum(["fixed", "time", "weight", "percentage", "quantity", "default"]).optional(),
+  type: z.enum(["default", "percentage"]).optional(),
   appliesTo: z.array(z.string()).optional(),
 })
 

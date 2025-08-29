@@ -3,7 +3,7 @@ export type CalculationType = 'fixed' | 'time' | 'weight' | 'percentage' | 'quan
 export interface LineItemDefinition {
   id: string;
   name: string;
-  type?: CalculationType; // This can now be set in the template
+  type?: 'percentage'; // This can now be set in the template
   appliesTo?: string[]; // Array of line item definition IDs for percentages
 }
 
