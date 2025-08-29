@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { PlusCircle, Trash2, X, Check, GripVertical } from "lucide-react"
-import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry, WeightUnit } from "@/lib/types"
+import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -47,7 +47,7 @@ function getEntryTotal(entry: LineItemEntry): number {
   if (entry.type === "fixed") {
     // For fixed, value1 is quantity, value2 is price. Default quantity to 1.
     return (entry.value1 || 1) * (entry.value2 || 0)
-  } else if (entry.type === "time" || entry.type === "weight") {
+  } else if (entry.type === "time" || entry.type === "weight" || entry.type === "volume") {
     return (entry.value1 || 0) * (entry.value2 || 0)
   }
   return 0
@@ -75,7 +75,6 @@ export default function Calculator({ template, onTemplateChange, values, onValue
       defId,
       name: "",
       type: 'fixed',
-      unit: 'g', // default unit
     }
     onValuesChange([...values, newEntry])
   }
@@ -93,11 +92,6 @@ export default function Calculator({ template, onTemplateChange, values, onValue
             updatedEntry.value1 = undefined;
             updatedEntry.value2 = undefined;
             updatedEntry.appliesTo = value === 'percentage' ? [] : undefined;
-            if (value === 'weight') {
-              updatedEntry.unit = updatedEntry.unit || 'g';
-            } else {
-              updatedEntry.unit = undefined;
-            }
           }
           return updatedEntry;
         }
@@ -211,7 +205,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
         return (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor={`${entry.id}-amount`}>Amount ({entry.unit})</Label>
+              <Label htmlFor={`${entry.id}-amount`}>Amount (g)</Label>
               <Input
                 id={`${entry.id}-amount`}
                 type="number"
@@ -221,7 +215,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`${entry.id}-rate`}>Rate (/{entry.unit})</Label>
+              <Label htmlFor={`${entry.id}-rate`}>Rate (/g)</Label>
               <Input
                 id={`${entry.id}-rate`}
                 type="number"
@@ -230,20 +224,31 @@ export default function Calculator({ template, onTemplateChange, values, onValue
                 onChange={(e) => handleNumericEntryChange(entry.id, "value2", e.target.value)}
               />
             </div>
-            <div className="col-span-2">
-                <Select
-                  value={entry.unit}
-                  onValueChange={(value) => handleEntryChange(entry.id, 'unit', value as WeightUnit)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="g">Gram (g)</SelectItem>
-                    <SelectItem value="ml">Milliliter (ml)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          </div>
+        )
+      case "volume":
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor={`${entry.id}-amount`}>Amount (ml)</Label>
+              <Input
+                id={`${entry.id}-amount`}
+                type="number"
+                placeholder="0"
+                value={entry.value1 ?? ""}
+                onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`${entry.id}-rate`}>Rate (/ml)</Label>
+              <Input
+                id={`${entry.id}-rate`}
+                type="number"
+                placeholder="0.00"
+                value={entry.value2 ?? ""}
+                onChange={(e) => handleNumericEntryChange(entry.id, "value2", e.target.value)}
+              />
+            </div>
           </div>
         )
       case "percentage":
@@ -306,7 +311,8 @@ export default function Calculator({ template, onTemplateChange, values, onValue
                     <SelectContent>
                         <SelectItem value="fixed">Fixed Price</SelectItem>
                         <SelectItem value="time">Time</SelectItem>
-                        <SelectItem value="weight">Weight</SelectItem>
+                        <SelectItem value="weight">Weight (g)</SelectItem>
+                        <SelectItem value="volume">Volume (ml)</SelectItem>
                         <SelectItem value="percentage">Percentage</SelectItem>
                     </SelectContent>
                 </Select>

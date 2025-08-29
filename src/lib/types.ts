@@ -1,4 +1,4 @@
-export type CalculationType = 'fixed' | 'time' | 'weight' | 'percentage';
+export type CalculationType = 'fixed' | 'time' | 'weight' | 'volume' | 'percentage';
 export type WeightUnit = 'g' | 'ml';
 
 export interface LineItemDefinition {
@@ -19,10 +19,9 @@ export interface LineItemEntry {
   defId: string; // ID of the LineItemDefinition it belongs to
   name: string; // User-defined name/description for this entry
   type: CalculationType; // Each entry now has its own calculation type
-  value1?: number; // For fixed: quantity; for time: hours; for weight: amount; for percentage: percent
-  value2?: number; // for fixed: price; for time: rate; for weight: rate;
+  value1?: number; // For fixed: quantity; for time: hours; for weight/volume: amount; for percentage: percent
+  value2?: number; // for fixed: price; for time: rate; for weight/volume: rate;
   appliesTo?: string[]; // For percentage: array of line item ENTRY IDs it applies to
-  unit?: WeightUnit; // For weight: the unit of measurement
 }
 
 // The values are now stored as an array of entries
