@@ -1,10 +1,12 @@
 "use client"
 
 import * as React from "react"
-import type { Template, LineItemValues, LineItemDefinition, CalculationType } from "@/lib/types"
+import { PlusCircle, Trash2 } from "lucide-react"
+import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { CalculationTypeIcon } from "@/components/icons"
 import CostChart from "./CostChart"
@@ -30,44 +32,62 @@ function formatCurrency(value: number) {
   }).format(value)
 }
 
+function getEntryTotal(entry: LineItemEntry, type: CalculationType): number {
+  if (type === "fixed") {
+    return entry.value1 || 0
+  } else if (type === "time" || type === "weight") {
+    return (entry.value1 || 0) * (entry.value2 || 0)
+  }
+  return 0
+}
+
 export default function Calculator({ template, values, onValuesChange }: CalculatorProps) {
-  const handleValueChange = (lineItemId: string, field: "value1" | "value2", value: string) => {
-    const numericValue = value === "" ? undefined : parseFloat(value)
-    const newValues = {
-      ...values,
-      [lineItemId]: {
-        ...values[lineItemId],
-        [field]: numericValue,
-      },
+  const handleAddEntry = (defId: string) => {
+    const newEntry: LineItemEntry = {
+      id: crypto.randomUUID(),
+      defId,
+      name: "",
     }
-    onValuesChange(newValues)
+    onValuesChange([...values, newEntry])
   }
 
+  const handleRemoveEntry = (entryId: string) => {
+    onValuesChange(values.filter(entry => entry.id !== entryId))
+  }
+
+  const handleEntryChange = (entryId: string, field: keyof Omit<LineItemEntry, "id" | "defId">, value: string) => {
+    const isNumeric = field === "value1" || field === "value2"
+    const parsedValue = isNumeric ? (value === "" ? undefined : parseFloat(value)) : value
+
+    onValuesChange(
+      values.map(entry =>
+        entry.id === entryId
+          ? { ...entry, [field]: parsedValue }
+          : entry
+      )
+    )
+  }
+  
   const { calculatedLines, subtotal, total } = React.useMemo(() => {
     const nonPercentageLines: CalculatedLine[] = []
     let subtotal = 0
 
-    template.lines.forEach((line) => {
-      if (line.type !== "percentage") {
-        const lineValues = values[line.id] || {}
-        let lineTotal = 0
-        if (line.type === "fixed") {
-          lineTotal = lineValues.value1 || 0
-        } else if (line.type === "time" || line.type === "weight") {
-          lineTotal = (lineValues.value1 || 0) * (lineValues.value2 || 0)
-        }
-        nonPercentageLines.push({ id: line.id, name: line.name, total: lineTotal, type: line.type })
+    values.forEach((entry) => {
+      const def = template.lines.find(d => d.id === entry.defId)
+      if (def && def.type !== "percentage") {
+        const lineTotal = getEntryTotal(entry, def.type)
+        nonPercentageLines.push({ id: entry.id, name: entry.name || def.name, total: lineTotal, type: def.type })
         subtotal += lineTotal
       }
     })
 
     const percentageLines: CalculatedLine[] = []
-    template.lines.forEach((line) => {
-      if (line.type === "percentage") {
-        const lineValues = values[line.id] || {}
-        const percentage = lineValues.value1 || 0
+    template.lines.forEach((lineDef) => {
+      if (lineDef.type === "percentage") {
+        const entry = values.find(e => e.defId === lineDef.id)
+        const percentage = entry?.value1 || 0
         const lineTotal = subtotal * (percentage / 100)
-        percentageLines.push({ id: line.id, name: line.name, total: lineTotal, type: line.type })
+        percentageLines.push({ id: lineDef.id, name: lineDef.name, total: lineTotal, type: lineDef.type })
       }
     })
 
@@ -77,25 +97,19 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
     return { calculatedLines: allLines, subtotal, total }
   }, [template.lines, values])
 
-  const getLineTotal = (lineId: string) => {
-    return calculatedLines.find(l => l.id === lineId)?.total || 0
-  }
-
-  const renderInputs = (line: LineItemDefinition) => {
-    const lineValues = values[line.id] || {}
-
+  const renderInputs = (entry: LineItemEntry, line: LineItemDefinition) => {
     switch (line.type) {
       case "fixed":
         return (
           <div className="grid grid-cols-1 gap-2">
             <div>
-              <Label htmlFor={`${line.id}-price`}>Price</Label>
+              <Label htmlFor={`${entry.id}-price`}>Price</Label>
               <Input
-                id={`${line.id}-price`}
+                id={`${entry.id}-price`}
                 type="number"
                 placeholder="0.00"
-                value={lineValues.value1 ?? ""}
-                onChange={(e) => handleValueChange(line.id, "value1", e.target.value)}
+                value={entry.value1 ?? ""}
+                onChange={(e) => handleEntryChange(entry.id, "value1", e.target.value)}
               />
             </div>
           </div>
@@ -104,23 +118,23 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
         return (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor={`${line.id}-hours`}>Hours</Label>
+              <Label htmlFor={`${entry.id}-hours`}>Hours</Label>
               <Input
-                id={`${line.id}-hours`}
+                id={`${entry.id}-hours`}
                 type="number"
                 placeholder="0"
-                value={lineValues.value1 ?? ""}
-                onChange={(e) => handleValueChange(line.id, "value1", e.target.value)}
+                value={entry.value1 ?? ""}
+                onChange={(e) => handleEntryChange(entry.id, "value1", e.target.value)}
               />
             </div>
             <div>
-              <Label htmlFor={`${line.id}-rate`}>Rate (/hr)</Label>
+              <Label htmlFor={`${entry.id}-rate`}>Rate (/hr)</Label>
               <Input
-                id={`${line.id}-rate`}
+                id={`${entry.id}-rate`}
                 type="number"
                 placeholder="0.00"
-                value={lineValues.value2 ?? ""}
-                onChange={(e) => handleValueChange(line.id, "value2", e.target.value)}
+                value={entry.value2 ?? ""}
+                onChange={(e) => handleEntryChange(entry.id, "value2", e.target.value)}
               />
             </div>
           </div>
@@ -129,28 +143,29 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
         return (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor={`${line.id}-amount`}>Amount (kg)</Label>
+              <Label htmlFor={`${entry.id}-amount`}>Amount (kg)</Label>
               <Input
-                id={`${line.id}-amount`}
+                id={`${entry.id}-amount`}
                 type="number"
                 placeholder="0"
-                value={lineValues.value1 ?? ""}
-                onChange={(e) => handleValueChange(line.id, "value1", e.target.value)}
+                value={entry.value1 ?? ""}
+                onChange={(e) => handleEntryChange(entry.id, "value1", e.target.value)}
               />
             </div>
             <div>
-              <Label htmlFor={`${line.id}-rate`}>Rate (/kg)</Label>
+              <Label htmlFor={`${entry.id}-rate`}>Rate (/kg)</Label>
               <Input
-                id={`${line.id}-rate`}
+                id={`${entry.id}-rate`}
                 type="number"
                 placeholder="0.00"
-                value={lineValues.value2 ?? ""}
-                onChange={(e) => handleValueChange(line.id, "value2", e.target.value)}
+                value={entry.value2 ?? ""}
+                onChange={(e) => handleEntryChange(entry.id, "value2", e.target.value)}
               />
             </div>
           </div>
         )
       case "percentage":
+         const percentageEntry = values.find(e => e.defId === line.id);
         return (
           <div className="grid grid-cols-1 gap-2">
             <div>
@@ -159,8 +174,15 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                 id={`${line.id}-percentage`}
                 type="number"
                 placeholder="0"
-                value={lineValues.value1 ?? ""}
-                onChange={(e) => handleValueChange(line.id, "value1", e.target.value)}
+                value={percentageEntry?.value1 ?? ""}
+                onChange={(e) => {
+                   if (percentageEntry) {
+                     handleEntryChange(percentageEntry.id, "value1", e.target.value)
+                   } else {
+                     const newEntry: LineItemEntry = { id: crypto.randomUUID(), defId: line.id, name: line.name, value1: parseFloat(e.target.value) };
+                     onValuesChange([...values, newEntry]);
+                   }
+                }}
               />
             </div>
           </div>
@@ -170,23 +192,81 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
     }
   }
 
+  const renderEntry = (entry: LineItemEntry, lineDef: LineItemDefinition) => (
+    <div key={entry.id} className="p-4 border-b last:border-b-0">
+       <div className="flex items-start gap-4">
+          <div className="flex-1 space-y-2">
+             <Input
+                placeholder="Description"
+                value={entry.name}
+                onChange={(e) => handleEntryChange(entry.id, "name", e.target.value)}
+                className="text-base font-medium"
+             />
+             {renderInputs(entry, lineDef)}
+          </div>
+          <div className="text-right">
+             <div className="font-bold text-lg mb-2">{formatCurrency(getEntryTotal(entry, lineDef.type))}</div>
+             <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                onClick={() => handleRemoveEntry(entry.id)}
+             >
+                <Trash2 className="size-4" />
+             </Button>
+          </div>
+       </div>
+    </div>
+  );
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <div className="lg:col-span-2 space-y-4">
-        {template.lines.map((line) => (
-          <Card key={line.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <CalculationTypeIcon type={line.type} className="h-4 w-4 text-muted-foreground" />
-                {line.name}
-              </CardTitle>
-              <span className="text-lg font-bold">{formatCurrency(getLineTotal(line.id))}</span>
-            </CardHeader>
-            <CardContent>
-                {renderInputs(line)}
-            </CardContent>
-          </Card>
-        ))}
+        {template.lines.map((lineDef) => {
+          if (lineDef.type === 'percentage') {
+            return (
+              <Card key={lineDef.id}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <CalculationTypeIcon type={lineDef.type} className="h-4 w-4 text-muted-foreground" />
+                    {lineDef.name}
+                  </CardTitle>
+                  <span className="text-lg font-bold">
+                    {formatCurrency(calculatedLines.find(l => l.id === lineDef.id)?.total || 0)}
+                  </span>
+                </CardHeader>
+                <CardContent>
+                  {renderInputs({id: "", defId: lineDef.id, name: lineDef.name}, lineDef)}
+                </CardContent>
+              </Card>
+            )
+          }
+
+          const entries = values.filter(v => v.defId === lineDef.id)
+
+          return (
+            <Card key={lineDef.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <CalculationTypeIcon type={lineDef.type} className="h-4 w-4 text-muted-foreground" />
+                    {lineDef.name}
+                  </CardTitle>
+                  <Button variant="outline" size="sm" onClick={() => handleAddEntry(lineDef.id)}>
+                    <PlusCircle className="mr-2" /> Add
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                {entries.length > 0 ? (
+                  entries.map(entry => renderEntry(entry, lineDef))
+                ) : (
+                  <p className="text-sm text-muted-foreground px-6 pb-4">No entries for {lineDef.name}. Click "Add" to start.</p>
+                )}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       <div className="lg:col-span-1 space-y-6 sticky top-4">
@@ -203,7 +283,7 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                     </div>
                     {calculatedLines.filter(l => l.type === 'percentage').map(line => (
                         <div key={line.id} className="flex justify-between text-muted-foreground">
-                            <span>{line.name} ({values[line.id]?.value1 || 0}%)</span>
+                            <span>{line.name} ({values.find(v => v.defId === line.id)?.value1 || 0}%)</span>
                             <span>{formatCurrency(line.total)}</span>
                         </div>
                     ))}

@@ -42,7 +42,7 @@ export default function Home() {
   const { toast } = useToast()
   const [templates, setTemplates] = useLocalStorage<Template[]>("calc-forge-templates", [])
   const [activeTemplateId, setActiveTemplateId] = React.useState<string | null>(null)
-  const [lineItemValues, setLineItemValues] = React.useState<LineItemValues>({})
+  const [lineItemValues, setLineItemValues] = useLocalStorage<LineItemValues>("calc-forge-values", [])
   const [isCreatorOpen, setIsCreatorOpen] = React.useState(false)
 
   React.useEffect(() => {
@@ -64,7 +64,7 @@ export default function Home() {
     const updatedTemplates = [...templates, templateWithId]
     setTemplates(updatedTemplates)
     setActiveTemplateId(templateWithId.id)
-    setLineItemValues({})
+    setLineItemValues([])
     setIsCreatorOpen(false)
     toast({
       title: "Template Created",
@@ -75,7 +75,7 @@ export default function Home() {
   const handleSelectTemplate = (id: string) => {
     if (activeTemplateId !== id) {
       setActiveTemplateId(id)
-      setLineItemValues({})
+      setLineItemValues([])
     }
   }
 
@@ -85,7 +85,7 @@ export default function Home() {
 
     if (activeTemplateId === id) {
       setActiveTemplateId(updatedTemplates.length > 0 ? updatedTemplates[0].id : null)
-      setLineItemValues({})
+      setLineItemValues([])
     }
     
     toast({
