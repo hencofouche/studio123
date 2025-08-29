@@ -3,8 +3,6 @@ export type CalculationType = 'fixed' | 'time' | 'weight' | 'percentage';
 export interface LineItemDefinition {
   id: string;
   name: string;
-  type?: 'percentage'; // This can now be set in the template
-  appliesTo?: string[]; // Array of line item definition IDs for percentages
 }
 
 export interface Template {
@@ -22,7 +20,7 @@ export interface LineItemEntry {
   type: CalculationType; // Each entry now has its own calculation type
   value1?: number; // For fixed: quantity; for time: hours; for weight: amount; for percentage: percent
   value2?: number; // for fixed: price; for time: rate; for weight: rate;
-  appliesTo?: string[]; // For percentage: array of line item definition IDs it applies to
+  appliesTo?: string[]; // For percentage: array of line item ENTRY IDs it applies to
 }
 
 // The values are now stored as an array of entries

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PlusCircle, Trash2, X, Check } from "lucide-react"
+import { PlusCircle, Trash2, X, Check, GripVertical } from "lucide-react"
 import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { CalculationTypeIcon } from "@/components/icons"
 import CostChart from "./CostChart"
 import { Separator } from "@/components/ui/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -24,6 +23,7 @@ import { Badge } from "@/components/ui/badge"
 
 interface CalculatorProps {
   template: Template
+  onTemplateChange: (template: Template) => void;
   values: LineItemValues
   onValuesChange: (values: LineItemValues) => void
 }
@@ -53,17 +53,28 @@ function getEntryTotal(entry: LineItemEntry): number {
   return 0
 }
 
-export default function Calculator({ template, values, onValuesChange }: CalculatorProps) {
-  const handleAddEntry = (defId: string) => {
-    const lineDef = template.lines.find(l => l.id === defId);
-    if (!lineDef) return;
+export default function Calculator({ template, onTemplateChange, values, onValuesChange }: CalculatorProps) {
+  const [newCategoryName, setNewCategoryName] = React.useState("");
 
+  const handleAddCategory = () => {
+    if (newCategoryName.trim() === "") return;
+    const newCategory: LineItemDefinition = {
+      id: crypto.randomUUID(),
+      name: newCategoryName.trim(),
+    };
+    onTemplateChange({
+      ...template,
+      lines: [...template.lines, newCategory],
+    });
+    setNewCategoryName("");
+  };
+
+  const handleAddEntry = (defId: string) => {
     const newEntry: LineItemEntry = {
       id: crypto.randomUUID(),
       defId,
       name: "",
-      type: lineDef.type === 'percentage' ? 'percentage' : 'fixed',
-      appliesTo: lineDef.type === 'percentage' ? lineDef.appliesTo : undefined
+      type: 'fixed',
     }
     onValuesChange([...values, newEntry])
   }
@@ -88,45 +99,45 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
       })
     )
   }
-
+  
   const handleNumericEntryChange = (entryId: string, field: keyof Omit<LineItemEntry, "id" | "defId">, value: string) => {
     const parsedValue = value === "" ? undefined : parseFloat(value)
     handleEntryChange(entryId, field, parsedValue as number)
   }
   
   const { calculatedLines, subtotal, total } = React.useMemo(() => {
-    const lineTotals: { [key: string]: number } = {};
-    template.lines.forEach(line => lineTotals[line.id] = 0);
+    const entryTotals: { [id: string]: number } = {};
+    const categoryTotals: { [id: string]: number } = {};
+    template.lines.forEach(line => categoryTotals[line.id] = 0);
 
     const nonPercentageLines: CalculatedLine[] = []
     
     values.forEach((entry) => {
       if (entry.type !== "percentage") {
-        const def = template.lines.find(d => d.id === entry.defId)
-        const lineTotal = getEntryTotal(entry)
+        const lineTotal = getEntryTotal(entry);
+        entryTotals[entry.id] = lineTotal;
         nonPercentageLines.push({ id: entry.id, name: entry.name || "Untitled", total: lineTotal, type: entry.type })
+        
+        const def = template.lines.find(d => d.id === entry.defId)
         if (def) {
-          lineTotals[def.id] = (lineTotals[def.id] || 0) + lineTotal;
+          categoryTotals[def.id] = (categoryTotals[def.id] || 0) + lineTotal;
         }
       }
     })
 
-    const currentSubtotal = nonPercentageLines.reduce((acc, line) => acc + line.total, 0);
+    const currentSubtotal = Object.values(entryTotals).reduce((acc, total) => acc + total, 0);
 
     const percentageLines: CalculatedLine[] = []
     values.forEach((entry) => {
       if (entry.type === 'percentage') {
-        const lineDef = template.lines.find(d => d.id === entry.defId)
-        if (!lineDef) return;
-        
         let baseTotal = currentSubtotal;
         if (entry.appliesTo && entry.appliesTo.length > 0) {
-           baseTotal = entry.appliesTo.reduce((acc, appliedId) => acc + (lineTotals[appliedId] || 0), 0);
+           baseTotal = entry.appliesTo.reduce((acc, appliedId) => acc + (entryTotals[appliedId] || 0), 0);
         }
         
         const percentage = entry.value1 || 0
         const lineTotal = baseTotal * (percentage / 100)
-        percentageLines.push({ id: entry.id, name: entry.name || lineDef.name, total: lineTotal, type: 'percentage' })
+        percentageLines.push({ id: entry.id, name: entry.name || "Percentage", total: lineTotal, type: 'percentage' })
       }
     })
 
@@ -137,10 +148,7 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
   }, [template.lines, values])
 
   const renderInputs = (entry: LineItemEntry) => {
-    const lineDef = template.lines.find(l => l.id === entry.defId);
-    if (!lineDef) return null;
-
-    const availableLinesForPercentage = template.lines.filter(l => l.id !== lineDef.id);
+    const availableLinesForPercentage = values.filter(v => v.type !== 'percentage' && v.id !== entry.id);
 
     switch (entry.type) {
       case "fixed":
@@ -234,7 +242,7 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
              <div>
               <Label>Applies To</Label>
                 <MultiSelect
-                  options={availableLinesForPercentage.map(l => ({ value: l.id, label: l.name }))}
+                  options={availableLinesForPercentage.map(l => ({ value: l.id, label: l.name || 'Untitled Entry' }))}
                   selected={entry.appliesTo || []}
                   onChange={(selected) => handleEntryChange(entry.id, 'appliesTo', selected)}
                   placeholder="Subtotal of all items"
@@ -249,12 +257,6 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
   }
 
   const renderEntry = (entry: LineItemEntry) => {
-    const lineDef = template.lines.find(l => l.id === entry.defId);
-    if (!lineDef) return null;
-
-    // A percentage line defined in the template should only have one entry that cannot be deleted
-    const isFixedPercentage = lineDef.type === 'percentage';
-    
     let totalForEntry: number;
     if (entry.type === 'percentage') {
        const percentageLine = calculatedLines.find(l => l.id === entry.id);
@@ -273,12 +275,10 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                     value={entry.name}
                     onChange={(e) => handleEntryChange(entry.id, "name", e.target.value)}
                     className="text-base font-medium flex-1"
-                    disabled={isFixedPercentage}
                 />
                 <Select 
                   value={entry.type} 
                   onValueChange={(value) => handleEntryChange(entry.id, "type", value as CalculationType)}
-                  disabled={isFixedPercentage}
                 >
                     <SelectTrigger className="w-full sm:w-[150px]">
                         <SelectValue placeholder="Select type" />
@@ -295,7 +295,6 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
           </div>
           <div className="text-right w-full sm:w-auto">
              <div className="font-bold text-lg mb-2">{formatCurrency(totalForEntry, template.currency)}</div>
-             {!isFixedPercentage && (
               <Button
                   variant="ghost"
                   size="icon"
@@ -304,40 +303,27 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
               >
                   <Trash2 className="size-4" />
               </Button>
-             )}
           </div>
        </div>
     </div>
   )};
 
-  // Ensure there's always one entry for percentage line definitions
-  React.useEffect(() => {
-    let changed = false;
-    const newValues = [...values];
-    template.lines.forEach(lineDef => {
-      if (lineDef.type === 'percentage') {
-        const hasEntry = values.some(v => v.defId === lineDef.id);
-        if (!hasEntry) {
-          changed = true;
-          newValues.push({
-            id: crypto.randomUUID(),
-            defId: lineDef.id,
-            name: lineDef.name,
-            type: 'percentage',
-            value1: 0,
-            appliesTo: lineDef.appliesTo || []
-          });
-        }
-      }
-    });
-    if (changed) {
-      onValuesChange(newValues);
-    }
-  }, [template.lines, values, onValuesChange]);
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <div className="lg:col-span-2 space-y-4">
+        <div className="flex items-center gap-2 p-2 rounded-lg border bg-card">
+          <Input
+            placeholder="New category name..."
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+            className="flex-1"
+          />
+          <Button onClick={handleAddCategory}>
+            <PlusCircle className="mr-2" /> Add Category
+          </Button>
+        </div>
+
         {template.lines.map((lineDef) => {
           const entries = values.filter(v => v.defId === lineDef.id);
 
@@ -345,22 +331,22 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
             <Card key={lineDef.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    {lineDef.type === 'percentage' && <CalculationTypeIcon type="percentage" className="h-4 w-4 text-muted-foreground" />}
-                    {lineDef.name}
-                  </CardTitle>
-                  {lineDef.type !== 'percentage' && (
-                    <Button variant="outline" size="sm" onClick={() => handleAddEntry(lineDef.id)}>
-                      <PlusCircle className="mr-2" /> Add Entry
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      {lineDef.name}
+                    </CardTitle>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => handleAddEntry(lineDef.id)}>
+                    <PlusCircle className="mr-2" /> Add Entry
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 {entries.length > 0 ? (
                   entries.map(entry => renderEntry(entry))
                 ) : (
-                  lineDef.type !== 'percentage' && <p className="text-sm text-muted-foreground px-6 pb-4">No entries for {lineDef.name}. Click "Add" to start.</p>
+                  <p className="text-sm text-muted-foreground px-6 pb-4">No entries for {lineDef.name}. Click "Add Entry" to start.</p>
                 )}
               </CardContent>
             </Card>
