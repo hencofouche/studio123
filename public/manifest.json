@@ -1,7 +1,11 @@
 {
   "name": "TPSA Calculator",
   "short_name": "TPSA Calc",
-  "description": "The TPSA Calculator.",
+  "description": "A calculator for TPSA",
+  "start_url": "https://tpsacalculator.vercel.app/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -13,10 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#000000",
-  "background_color": "#ffffff",
-  "start_url": "/",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }
