@@ -1,0 +1,7 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="192" height="192" rx="30" fill="#18181B"/>
+<text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="90" font-weight="bold" fill="#FAFAFA">
+  <tspan x="38%" dy="-0.1em">T</tspan>
+  <tspan dx="0.05em" dy="0.1em" font-size="75">Σ</tspan>
+</text>
+</svg>
