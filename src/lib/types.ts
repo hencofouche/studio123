@@ -4,11 +4,13 @@ export interface LineItemDefinition {
   id: string;
   name: string;
   type: CalculationType;
+  appliesTo?: string[]; // Array of line item definition IDs
 }
 
 export interface Template {
   id: string;
   name: string;
+  currency: string;
   lines: LineItemDefinition[];
 }
 

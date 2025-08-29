@@ -17,7 +17,8 @@ interface CostChartProps {
     name: string
     total: number
     type: CalculationType
-  }[]
+  }[],
+  currency: string;
 }
 
 const COLORS = [
@@ -28,7 +29,7 @@ const COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload, currency }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -39,7 +40,7 @@ const CustomTooltip = ({ active, payload }: any) => {
             <span className="font-bold">
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
-                currency: "USD",
+                currency: currency,
               }).format(data.value)}
             </span>
           </div>
@@ -51,7 +52,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export default function CostChart({ data }: CostChartProps) {
+export default function CostChart({ data, currency }: CostChartProps) {
   const chartData = data
     .filter((item) => item.total > 0)
     .map((item) => ({
@@ -70,12 +71,12 @@ export default function CostChart({ data }: CostChartProps) {
           <div className="w-full h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltip currency={currency} />} />
                 <Legend
                   verticalAlign="bottom"
                   height={48}
                   iconSize={8}
-                  wrapperStyle={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}
+                  formatter={(value, entry) => <span className="text-muted-foreground">{value}</span>}
                 />
                 <Pie
                   data={chartData}

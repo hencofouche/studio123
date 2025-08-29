@@ -22,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
 import Calculator from "@/components/calc-forge/Calculator"
 import TemplateCreator from "@/components/calc-forge/TemplateCreator"
@@ -37,6 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export default function Home() {
   const { toast } = useToast()
@@ -166,6 +168,9 @@ export default function Home() {
             )}
           </SidebarMenu>
         </SidebarContent>
+        <SidebarFooter>
+          <ModeToggle />
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <div className="p-4 flex items-center gap-4">
