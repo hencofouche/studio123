@@ -33,13 +33,13 @@ import { PlusCircle, Trash2 } from "lucide-react"
 import type { CalculationType, Template } from "@/lib/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
 import React from "react"
 
+// A new 'isPercentage' field is added to distinguish percentage lines in the UI
 const lineItemSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Name is required"),
-  type: z.enum(["fixed", "time", "weight", "percentage"]),
+  isPercentage: z.boolean().optional(),
   appliesTo: z.array(z.string()).optional(),
 })
 
@@ -77,7 +77,7 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
     defaultValues: {
       name: "",
       currency: "ZAR",
-      lines: [{ id: crypto.randomUUID(), name: "", type: "fixed", appliesTo: [] }],
+      lines: [{ id: crypto.randomUUID(), name: "", isPercentage: false, appliesTo: [] }],
     },
   })
 
@@ -96,11 +96,15 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
         name: data.name,
         currency: data.currency,
         lines: data.lines.map(line => ({
-            ...line,
             id: line.id || crypto.randomUUID(),
-            type: line.type as CalculationType,
-            appliesTo: line.type === 'percentage' ? line.appliesTo : undefined
-        }))
+            name: line.name,
+            // The type is now determined by 'isPercentage'
+            type: line.isPercentage ? 'percentage' : undefined, 
+            appliesTo: line.isPercentage ? line.appliesTo : undefined
+        })).map(({ type, ...rest }) => ({
+          ...rest,
+          ...(type === 'percentage' && { type }), // only add type if it's percentage
+        })) as unknown as Template['lines'] // The type is handled by backend logic
     }
     onSave(newTemplateData)
     form.reset()
@@ -111,13 +115,14 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
       form.reset({
         name: "",
         currency: "ZAR",
-        lines: [{ id: crypto.randomUUID(), name: "", type: "fixed", appliesTo: [] }],
+        lines: [{ id: crypto.randomUUID(), name: "", isPercentage: false, appliesTo: [] }],
       });
     }
     onOpenChange(open);
   }
 
-  const nonPercentageLines = watchedLines.filter(line => line.type !== 'percentage');
+  // Filter for lines that can have percentages applied to them
+  const nonPercentageLines = watchedLines.filter(line => !line.isPercentage);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -125,7 +130,7 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
         <DialogHeader className="p-6 pb-0">
           <DialogTitle>Create New Template</DialogTitle>
           <DialogDescription>
-            Define the structure of your calculator. Add line items with specific calculation types.
+            Define the structure of your calculator. Add line items as categories for your costs.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -169,7 +174,7 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                 </div>
 
                 <div>
-                  <h3 className="mb-2 text-sm font-medium">Line Items</h3>
+                  <h3 className="mb-2 text-sm font-medium">Line Item Categories</h3>
                   <div className="space-y-4">
                     {fields.map((field, index) => {
                       const currentLine = watchedLines[index];
@@ -191,24 +196,18 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                             />
                             <FormField
                               control={form.control}
-                              name={`lines.${index}.type`}
+                              name={`lines.${index}.isPercentage`}
                               render={({ field }) => (
-                                <FormItem className="w-full sm:w-[150px]">
-                                  <FormLabel>Type</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="fixed">Fixed Price</SelectItem>
-                                      <SelectItem value="time">Time</SelectItem>
-                                      <SelectItem value="weight">Weight</SelectItem>
-                                      <SelectItem value="percentage">Percentage</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
+                                <FormItem className="flex flex-row items-center space-x-2 space-y-0 pt-7">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal whitespace-nowrap">
+                                    Is Percentage?
+                                  </FormLabel>
                                 </FormItem>
                               )}
                             />
@@ -218,13 +217,13 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                               size="icon"
                               onClick={() => remove(index)}
                               disabled={fields.length <= 1}
-                              className="w-full sm:w-10"
+                              className="w-full sm:w-10 mt-2 sm:mt-0"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
 
-                          {currentLine?.type === 'percentage' && (
+                          {currentLine?.isPercentage && (
                              <FormField
                               control={form.control}
                               name={`lines.${index}.appliesTo`}
@@ -233,7 +232,7 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                                    <div className="mb-2">
                                     <FormLabel className="text-sm font-medium">Applies To</FormLabel>
                                     <FormDescription className="text-xs">
-                                      Select which line items this percentage should be calculated from.
+                                      Select which line items this percentage should be calculated from. If none are selected, it applies to the subtotal.
                                     </FormDescription>
                                   </div>
                                   {nonPercentageLines.length > 0 ? (
@@ -274,7 +273,7 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                                       ))}
                                     </div>
                                   ) : (
-                                    <p className="text-xs text-muted-foreground">Add other line item types to apply percentages to them.</p>
+                                    <p className="text-xs text-muted-foreground">Add other line item categories to apply percentages to them.</p>
                                   )}
                                 </FormItem>
                               )}
@@ -289,10 +288,10 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => append({ id: crypto.randomUUID(), name: "", type: "fixed", appliesTo: [] })}
+                  onClick={() => append({ id: crypto.randomUUID(), name: "", isPercentage: false, appliesTo: [] })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Line Item
+                  Add Category
                 </Button>
               </div>
             </ScrollArea>
