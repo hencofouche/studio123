@@ -205,7 +205,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
         return (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor={`${entry.id}-amount`}>Amount (kg)</Label>
+              <Label htmlFor={`${entry.id}-amount`}>Amount (g)</Label>
               <Input
                 id={`${entry.id}-amount`}
                 type="number"
@@ -215,7 +215,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
               />
             </div>
             <div>
-              <Label htmlFor={`${entry.id}-rate`}>Rate (/kg)</Label>
+              <Label htmlFor={`${entry.id}-rate`}>Rate (/g)</Label>
               <Input
                 id={`${entry.id}-rate`}
                 type="number"
