@@ -42,8 +42,9 @@ function formatCurrency(value: number, currency: string) {
 
 function getEntryTotal(entry: LineItemEntry): number {
   if (entry.type === "fixed") {
-    return entry.value1 || 0
-  } else if (entry.type === "time" || entry.type === "weight" || entry.type === "quantity") {
+    // For fixed, value1 is quantity, value2 is price. Default quantity to 1.
+    return (entry.value1 || 1) * (entry.value2 || 0)
+  } else if (entry.type === "time" || entry.type === "weight") {
     return (entry.value1 || 0) * (entry.value2 || 0)
   }
   return 0
@@ -127,15 +128,25 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
     switch (entry.type) {
       case "fixed":
         return (
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor={`${entry.id}-price`}>Price</Label>
+              <Label htmlFor={`${entry.id}-quantity`}>Quantity</Label>
+              <Input
+                id={`${entry.id}-quantity`}
+                type="number"
+                placeholder="1"
+                value={entry.value1 ?? ""}
+                onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor={`${entry.id}-price`}>Unit Price</Label>
               <Input
                 id={`${entry.id}-price`}
                 type="number"
                 placeholder="0.00"
-                value={entry.value1 ?? ""}
-                onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
+                value={entry.value2 ?? ""}
+                onChange={(e) => handleNumericEntryChange(entry.id, "value2", e.target.value)}
               />
             </div>
           </div>
@@ -189,31 +200,6 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
               />
             </div>
           </div>
-        )
-      case "quantity":
-        return (
-            <div className="grid grid-cols-2 gap-4">
-            <div>
-                <Label htmlFor={`${entry.id}-quantity`}>Quantity</Label>
-                <Input
-                id={`${entry.id}-quantity`}
-                type="number"
-                placeholder="0"
-                value={entry.value1 ?? ""}
-                onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
-                />
-            </div>
-            <div>
-                <Label htmlFor={`${entry.id}-price-per-item`}>Price per item</Label>
-                <Input
-                id={`${entry.id}-price-per-item`}
-                type="number"
-                placeholder="0.00"
-                value={entry.value2 ?? ""}
-                onChange={(e) => handleNumericEntryChange(entry.id, "value2", e.target.value)}
-                />
-            </div>
-            </div>
         )
       case "percentage":
         return (
@@ -287,7 +273,6 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                         <SelectItem value="fixed">Fixed Price</SelectItem>
                         <SelectItem value="time">Time</SelectItem>
                         <SelectItem value="weight">Weight</SelectItem>
-                        <SelectItem value="quantity">Quantity</SelectItem>
                         <SelectItem value="percentage">Percentage</SelectItem>
                     </SelectContent>
                 </Select>

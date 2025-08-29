@@ -14,8 +14,6 @@ export const CalculationTypeIcon = ({ type, ...props }: { type: CalculationType 
       return <Percent {...props} />;
     case "fixed":
       return <DollarSign {...props} />;
-    case "quantity":
-        return <Package {...props} />;
     default:
       return null;
   }
