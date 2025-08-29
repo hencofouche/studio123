@@ -18,8 +18,9 @@ import { cn } from "@/lib/utils"
 import CostChart from "./CostChart"
 import { Separator } from "@/components/ui/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface CalculatorProps {
   template: Template
@@ -468,38 +469,43 @@ function MultiSelect({ options, selected, onChange, className, placeholder = "Se
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
-          <CommandInput placeholder="Search..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  onSelect={() => {
-                    if (selectedValues.has(option.value)) {
-                      onChange(selected.filter(v => v !== option.value));
-                    } else {
-                      onChange([...selected, option.value]);
-                    }
-                  }}
-                >
-                  <div
-                    className={cn(
-                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                      selectedValues.has(option.value)
-                        ? "bg-primary text-primary-foreground"
-                        : "opacity-50 [&_svg]:invisible"
-                    )}
-                  >
-                    <Check className={cn("h-4 w-4")} />
-                  </div>
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+        <ScrollArea className="max-h-60">
+           <div className="p-2">
+            {options.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground">No items to select.</p>
+            ) : (
+                options.map((option) => (
+                    <div
+                        key={option.value}
+                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent"
+                        onClick={() => {
+                            const newSelected = selectedValues.has(option.value)
+                            ? selected.filter(v => v !== option.value)
+                            : [...selected, option.value];
+                            onChange(newSelected);
+                        }}
+                    >
+                        <Checkbox
+                            id={`multi-select-${option.value}`}
+                            checked={selectedValues.has(option.value)}
+                            onCheckedChange={() => {
+                                const newSelected = selectedValues.has(option.value)
+                                ? selected.filter(v => v !== option.value)
+                                : [...selected, option.value];
+                                onChange(newSelected);
+                            }}
+                        />
+                        <Label
+                            htmlFor={`multi-select-${option.value}`}
+                            className="flex-1 cursor-pointer"
+                        >
+                            {option.label}
+                        </Label>
+                    </div>
+                ))
+            )}
+           </div>
+        </ScrollArea>
       </PopoverContent>
     </Popover>
   );
