@@ -64,24 +64,18 @@ const defaultTemplate: Template = {
 export default function Home() {
   const { toast } = useToast()
   const [templates, setTemplates] = useLocalStorage<Template[]>("calc-forge-templates", [])
-  const [activeTemplateId, setActiveTemplateId] = React.useState<string | null>(null)
+  const [activeTemplateId, setActiveTemplateId] = useLocalStorage<string | null>("calc-forge-active", null)
   const [lineItemValues, setLineItemValues] = useLocalStorage<any>("calc-forge-values", [])
   const [newTemplateName, setNewTemplateName] = React.useState("")
   const [isCreateDialogOpen, setCreateDialogOpen] = React.useState(false)
 
   React.useEffect(() => {
-    if (templates.length === 0) {
-      // If there are no templates, create a default one to start
-      const newDefaultTemplate = { ...defaultTemplate, id: crypto.randomUUID() };
-      setTemplates([newDefaultTemplate]);
-      setActiveTemplateId(newDefaultTemplate.id);
+    // On initial load, if the activeTemplateId from localStorage is invalid, reset it.
+    if (activeTemplateId && !templates.some(t => t.id === activeTemplateId)) {
+      setActiveTemplateId(null);
       setLineItemValues([]);
-    } else if (!activeTemplateId || !templates.some(t => t.id === activeTemplateId)) {
-      // If there's no active template or the active one is invalid, select the first one
-      setActiveTemplateId(templates.length > 0 ? templates[0].id : null);
-      // Don't clear values if we're just re-selecting
     }
-  }, [templates, activeTemplateId, setTemplates, setLineItemValues]);
+  }, [templates, activeTemplateId, setActiveTemplateId, setLineItemValues]);
 
 
   const activeTemplate = React.useMemo(
