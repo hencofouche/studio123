@@ -106,31 +106,26 @@ export default function Calculator({ template, onTemplateChange, values, onValue
     handleEntryChange(entryId, field, parsedValue as number)
   }
   
-  const { calculatedLines, subtotal, total } = React.useMemo(() => {
+  const { calculatedLines, categoryTotals, total } = React.useMemo(() => {
     const entryTotals: { [id: string]: number } = {};
-    const categoryTotals: { [id: string]: number } = {};
-    template.lines.forEach(line => categoryTotals[line.id] = 0);
+    const tempCategoryTotals: { [id: string]: number } = {};
+    template.lines.forEach(line => tempCategoryTotals[line.id] = 0);
 
-    const nonPercentageLines: CalculatedLine[] = []
+    const nonPercentageEntries = values.filter(entry => entry.type !== 'percentage');
     
-    values.forEach((entry) => {
-      if (entry.type !== "percentage") {
-        const lineTotal = getEntryTotal(entry);
-        entryTotals[entry.id] = lineTotal;
-        nonPercentageLines.push({ id: entry.id, name: entry.name || "Untitled", total: lineTotal, type: entry.type })
-        
-        const def = template.lines.find(d => d.id === entry.defId)
-        if (def) {
-          categoryTotals[def.id] = (categoryTotals[def.id] || 0) + lineTotal;
-        }
+    nonPercentageEntries.forEach((entry) => {
+      const lineTotal = getEntryTotal(entry);
+      entryTotals[entry.id] = lineTotal;
+      if (entry.defId) {
+        tempCategoryTotals[entry.defId] = (tempCategoryTotals[entry.defId] || 0) + lineTotal;
       }
     })
 
     const currentSubtotal = Object.values(entryTotals).reduce((acc, total) => acc + total, 0);
 
     const percentageLines: CalculatedLine[] = []
-    values.forEach((entry) => {
-      if (entry.type === 'percentage') {
+    const percentageEntries = values.filter(entry => entry.type === 'percentage');
+    percentageEntries.forEach((entry) => {
         let baseTotal = currentSubtotal;
         if (entry.appliesTo && entry.appliesTo.length > 0) {
            baseTotal = entry.appliesTo.reduce((acc, appliedId) => acc + (entryTotals[appliedId] || 0), 0);
@@ -139,13 +134,18 @@ export default function Calculator({ template, onTemplateChange, values, onValue
         const percentage = entry.value1 || 0
         const lineTotal = baseTotal * (percentage / 100)
         percentageLines.push({ id: entry.id, name: entry.name || "Percentage", total: lineTotal, type: 'percentage' })
-      }
     })
+    
+    const categoryTotals = template.lines.map(lineDef => ({
+      id: lineDef.id,
+      name: lineDef.name,
+      total: tempCategoryTotals[lineDef.id] || 0,
+      type: 'fixed' as CalculationType, // type is just for the chart props
+    }));
 
-    const allLines = [...nonPercentageLines, ...percentageLines]
-    const newTotal = allLines.reduce((acc, line) => acc + line.total, 0)
+    const newTotal = categoryTotals.reduce((acc, cat) => acc + cat.total, 0) + percentageLines.reduce((acc, line) => acc + line.total, 0);
 
-    return { calculatedLines: allLines, subtotal: currentSubtotal, total: newTotal }
+    return { calculatedLines: percentageLines, categoryTotals, total: newTotal }
   }, [template.lines, values])
 
   const renderInputs = (entry: LineItemEntry) => {
@@ -353,6 +353,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
 
         {template.lines.map((lineDef) => {
           const entries = values.filter(v => v.defId === lineDef.id);
+          const percentageEntries = values.filter(v => v.type === 'percentage');
 
           return (
             <Card key={lineDef.id}>
@@ -379,6 +380,20 @@ export default function Calculator({ template, onTemplateChange, values, onValue
             </Card>
           )
         })}
+
+        {values.some(v => v.type === 'percentage') && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base font-medium">Adjustments</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                    {values.filter(v => v.type === 'percentage').map(entry => renderEntry(entry))}
+                </CardContent>
+            </Card>
+        )}
+         <Button variant="outline" className="w-full" onClick={() => handleAddEntry('')}>
+            <PlusCircle className="mr-2" /> Add Percentage/Adjustment
+          </Button>
       </div>
 
       <div className="lg:col-span-1 space-y-6 sticky top-4">
@@ -387,26 +402,24 @@ export default function Calculator({ template, onTemplateChange, values, onValue
                 <CardTitle>Summary</CardTitle>
             </CardHeader>
             <CardContent>
-                {calculatedLines.filter(l => l.type !== 'percentage').length > 0 && (
-                    <>
-                    <div className="flex justify-between text-muted-foreground">
-                        <span>Subtotal</span>
-                        <span>{formatCurrency(subtotal, template.currency)}</span>
-                    </div>
-                    {calculatedLines.filter(l => l.type === 'percentage').map(line => {
-                         const entry = values.find(v => v.id === line.id)
-                         if (!entry) return null;
-                         const lineDef = template.lines.find(l => l.id === entry.defId);
-                         return (
-                            <div key={line.id} className="flex justify-between text-muted-foreground">
-                                <span>{line.name} ({values.find(v => v.id === line.id)?.value1 || 0}%)</span>
-                                <span>{formatCurrency(line.total, template.currency)}</span>
-                            </div>
-                         )
-                    })}
-                    <Separator className="my-2"/>
-                    </>
-                )}
+                {categoryTotals.map(cat => (
+                  <div key={cat.id} className="flex justify-between text-muted-foreground">
+                      <span>{cat.name}</span>
+                      <span>{formatCurrency(cat.total, template.currency)}</span>
+                  </div>
+                ))}
+
+                {categoryTotals.length > 0 && calculatedLines.length > 0 && <Separator className="my-2"/>}
+
+                {calculatedLines.map(line => (
+                     <div key={line.id} className="flex justify-between text-muted-foreground">
+                         <span>{line.name} ({values.find(v => v.id === line.id)?.value1 || 0}%)</span>
+                         <span>{formatCurrency(line.total, template.currency)}</span>
+                     </div>
+                ))}
+                
+                {(categoryTotals.length > 0 || calculatedLines.length > 0) && <Separator className="my-2"/>}
+
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>{formatCurrency(total, template.currency)}</span>
@@ -414,7 +427,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
             </CardContent>
         </Card>
         
-        <CostChart data={calculatedLines} currency={template.currency} />
+        <CostChart data={categoryTotals} currency={template.currency} />
       </div>
     </div>
   )

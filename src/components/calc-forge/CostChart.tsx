@@ -16,7 +16,6 @@ interface CostChartProps {
     id: string
     name: string
     total: number
-    type: CalculationType
   }[],
   currency: string;
 }
@@ -53,6 +52,21 @@ const CustomTooltip = ({ active, payload, currency }: any) => {
   return null;
 };
 
+const CustomLegend = (props: any) => {
+  const { payload } = props;
+  return (
+    <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+      {payload.map((entry: any, index: number) => (
+        <li key={`item-${index}`} className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span>{entry.value}</span>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+
 export default function CostChart({ data, currency }: CostChartProps) {
   const chartData = data
     .filter((item) => item.total > 0)
@@ -69,20 +83,15 @@ export default function CostChart({ data, currency }: CostChartProps) {
       </CardHeader>
       <CardContent>
         {chartData.length > 0 ? (
-          <div className="w-full h-[250px]">
+          <div className="w-full h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Tooltip content={<CustomTooltip currency={currency} />} />
-                <Legend
-                  verticalAlign="bottom"
-                  height={48}
-                  iconSize={8}
-                  formatter={(value, entry) => <span className="text-muted-foreground">{value}</span>}
-                />
+                <Legend content={<CustomLegend />} />
                 <Pie
                   data={chartData}
                   cx="50%"
-                  cy="50%"
+                  cy="45%"
                   labelLine={false}
                   outerRadius={80}
                   fill="#8884d8"
@@ -98,7 +107,7 @@ export default function CostChart({ data, currency }: CostChartProps) {
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
             Enter some values to see the cost breakdown.
           </div>
         )}
