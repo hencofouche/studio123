@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select"
 import { PlusCircle, Trash2 } from "lucide-react"
 import type { CalculationType, Template } from "@/lib/types"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const lineItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -110,60 +111,63 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
 
             <div>
               <h3 className="mb-2 text-sm font-medium">Line Items</h3>
-              <div className="space-y-4">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex items-end gap-2 p-3 border rounded-lg bg-muted/50">
-                    <FormField
-                      control={form.control}
-                      name={`lines.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem className="flex-1">
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Labor" {...field} />
-                          </FormControl>
-                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`lines.${index}.type`}
-                      render={({ field }) => (
-                        <FormItem className="w-[150px]">
-                          <FormLabel>Type</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+              <ScrollArea className="h-64 pr-4">
+                <div className="space-y-4">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex flex-col sm:flex-row items-start sm:items-end gap-2 p-3 border rounded-lg bg-muted/50">
+                      <FormField
+                        control={form.control}
+                        name={`lines.${index}.name`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1 w-full">
+                            <FormLabel>Name</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
-                              </SelectTrigger>
+                              <Input placeholder="e.g., Labor" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="fixed">Fixed Price</SelectItem>
-                              <SelectItem value="time">Time</SelectItem>
-                              <SelectItem value="weight">Weight</SelectItem>
-                              <SelectItem value="percentage">Percentage</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => remove(index)}
-                      disabled={fields.length <= 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                             <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`lines.${index}.type`}
+                        render={({ field }) => (
+                          <FormItem className="w-full sm:w-[150px]">
+                            <FormLabel>Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="fixed">Fixed Price</SelectItem>
+                                <SelectItem value="time">Time</SelectItem>
+                                <SelectItem value="weight">Weight</SelectItem>
+                                <SelectItem value="percentage">Percentage</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => remove(index)}
+                        disabled={fields.length <= 1}
+                        className="w-full sm:w-10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
 
             <Button
