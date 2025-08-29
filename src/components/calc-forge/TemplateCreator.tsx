@@ -30,16 +30,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { PlusCircle, Trash2 } from "lucide-react"
-import type { CalculationType, Template } from "@/lib/types"
+import type { Template } from "@/lib/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
 import React from "react"
+import { cn } from "@/lib/utils"
 
-// A new 'isPercentage' field is added to distinguish percentage lines in the UI
 const lineItemSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Name is required"),
-  isPercentage: z.boolean().optional(),
+  type: z.enum(["fixed", "time", "weight", "percentage", "quantity", "default"]).optional(),
   appliesTo: z.array(z.string()).optional(),
 })
 
@@ -77,7 +77,7 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
     defaultValues: {
       name: "",
       currency: "ZAR",
-      lines: [{ id: crypto.randomUUID(), name: "", isPercentage: false, appliesTo: [] }],
+      lines: [{ id: crypto.randomUUID(), name: "", type: "default", appliesTo: [] }],
     },
   })
 
@@ -98,13 +98,15 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
         lines: data.lines.map(line => ({
             id: line.id || crypto.randomUUID(),
             name: line.name,
-            // The type is now determined by 'isPercentage'
-            type: line.isPercentage ? 'percentage' : undefined, 
-            appliesTo: line.isPercentage ? line.appliesTo : undefined
-        })).map(({ type, ...rest }) => ({
-          ...rest,
-          ...(type === 'percentage' && { type }), // only add type if it's percentage
-        })) as unknown as Template['lines'] // The type is handled by backend logic
+            type: line.type === 'percentage' ? 'percentage' : undefined, 
+            appliesTo: line.type === 'percentage' ? line.appliesTo : undefined
+        })).map(({ type, ...rest }) => {
+            const finalLine: any = { ...rest };
+            if (type === 'percentage') {
+                finalLine.type = 'percentage';
+            }
+            return finalLine;
+        }) as Template['lines']
     }
     onSave(newTemplateData)
     form.reset()
@@ -115,14 +117,13 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
       form.reset({
         name: "",
         currency: "ZAR",
-        lines: [{ id: crypto.randomUUID(), name: "", isPercentage: false, appliesTo: [] }],
+        lines: [{ id: crypto.randomUUID(), name: "", type: "default", appliesTo: [] }],
       });
     }
     onOpenChange(open);
   }
 
-  // Filter for lines that can have percentages applied to them
-  const nonPercentageLines = watchedLines.filter(line => !line.isPercentage);
+  const availableLinesForPercentage = watchedLines.filter(line => line.type !== 'percentage');
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -194,20 +195,23 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                                 </FormItem>
                               )}
                             />
-                            <FormField
+                             <FormField
                               control={form.control}
-                              name={`lines.${index}.isPercentage`}
+                              name={`lines.${index}.type`}
                               render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-2 space-y-0 pt-7">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal whitespace-nowrap">
-                                    Is Percentage?
-                                  </FormLabel>
+                                <FormItem className="w-full sm:w-[180px]">
+                                   <FormLabel>Type (Optional)</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Default (User selects)" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="default">User Selects in Calc</SelectItem>
+                                      <SelectItem value="percentage">Percentage</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </FormItem>
                               )}
                             />
@@ -217,13 +221,13 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                               size="icon"
                               onClick={() => remove(index)}
                               disabled={fields.length <= 1}
-                              className="w-full sm:w-10 mt-2 sm:mt-0"
+                              className="w-full sm:w-10 mt-2 sm:mt-0 self-end"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
 
-                          {currentLine?.isPercentage && (
+                          {currentLine?.type === "percentage" && (
                              <FormField
                               control={form.control}
                               name={`lines.${index}.appliesTo`}
@@ -235,9 +239,9 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                                       Select which line items this percentage should be calculated from. If none are selected, it applies to the subtotal.
                                     </FormDescription>
                                   </div>
-                                  {nonPercentageLines.length > 0 ? (
+                                  {availableLinesForPercentage.length > 0 ? (
                                     <div className="space-y-2">
-                                      {nonPercentageLines.map((line) => (
+                                      {availableLinesForPercentage.map((line) => (
                                         <FormField
                                           key={line.id}
                                           control={form.control}
@@ -252,14 +256,12 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                                                   <Checkbox
                                                     checked={field.value?.includes(line.id!)}
                                                     onCheckedChange={(checked) => {
-                                                      setTimeout(() => {
-                                                        const newValue = checked
-                                                          ? [...(field.value || []), line.id!]
-                                                          : (field.value || []).filter(
-                                                              (value) => value !== line.id
-                                                            );
-                                                        field.onChange(newValue);
-                                                      }, 0);
+                                                      const newValue = checked
+                                                        ? [...(field.value || []), line.id!]
+                                                        : (field.value || []).filter(
+                                                            (value) => value !== line.id
+                                                          );
+                                                      field.onChange(newValue);
                                                     }}
                                                   />
                                                 </FormControl>
@@ -288,7 +290,7 @@ export default function TemplateCreator({ isOpen, onOpenChange, onSave }: Templa
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => append({ id: crypto.randomUUID(), name: "", isPercentage: false, appliesTo: [] })}
+                  onClick={() => append({ id: crypto.randomUUID(), name: "", type: "default", appliesTo: [] })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Category

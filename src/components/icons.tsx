@@ -1,4 +1,4 @@
-import { Clock, Weight, Percent, DollarSign, Icon as LucideIcon } from "lucide-react";
+import { Clock, Weight, Percent, DollarSign, Icon as LucideIcon, Package } from "lucide-react";
 import type { ComponentProps } from "react";
 import type { CalculationType } from "@/lib/types";
 
@@ -14,6 +14,8 @@ export const CalculationTypeIcon = ({ type, ...props }: { type: CalculationType 
       return <Percent {...props} />;
     case "fixed":
       return <DollarSign {...props} />;
+    case "quantity":
+        return <Package {...props} />;
     default:
       return null;
   }

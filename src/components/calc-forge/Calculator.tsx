@@ -43,7 +43,7 @@ function formatCurrency(value: number, currency: string) {
 function getEntryTotal(entry: LineItemEntry): number {
   if (entry.type === "fixed") {
     return entry.value1 || 0
-  } else if (entry.type === "time" || entry.type === "weight") {
+  } else if (entry.type === "time" || entry.type === "weight" || entry.type === "quantity") {
     return (entry.value1 || 0) * (entry.value2 || 0)
   }
   return 0
@@ -55,7 +55,7 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
       id: crypto.randomUUID(),
       defId,
       name: "",
-      type: "fixed", // Default to fixed type
+      type: "fixed",
     }
     onValuesChange([...values, newEntry])
   }
@@ -69,7 +69,6 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
       values.map(entry => {
         if (entry.id === entryId) {
           const updatedEntry = { ...entry, [field]: value };
-          // If type changes, reset values to avoid carrying over incompatible data
           if (field === 'type') {
             updatedEntry.value1 = undefined;
             updatedEntry.value2 = undefined;
@@ -105,10 +104,9 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
 
     const percentageLines: CalculatedLine[] = []
     template.lines.forEach((lineDef) => {
-      // Find the corresponding percentage entry in `values`
       const percentageEntry = values.find(e => e.defId === lineDef.id && e.type === 'percentage');
       if (lineDef.type === "percentage" && percentageEntry) {
-        let baseTotal = subtotal; // Default to overall subtotal
+        let baseTotal = subtotal;
         if (lineDef.appliesTo && lineDef.appliesTo.length > 0) {
            baseTotal = lineDef.appliesTo.reduce((acc, appliedId) => acc + (lineTotals[appliedId] || 0), 0);
         }
@@ -192,6 +190,46 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
             </div>
           </div>
         )
+      case "quantity":
+        return (
+            <div className="grid grid-cols-2 gap-4">
+            <div>
+                <Label htmlFor={`${entry.id}-quantity`}>Quantity</Label>
+                <Input
+                id={`${entry.id}-quantity`}
+                type="number"
+                placeholder="0"
+                value={entry.value1 ?? ""}
+                onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
+                />
+            </div>
+            <div>
+                <Label htmlFor={`${entry.id}-price-per-item`}>Price per item</Label>
+                <Input
+                id={`${entry.id}-price-per-item`}
+                type="number"
+                placeholder="0.00"
+                value={entry.value2 ?? ""}
+                onChange={(e) => handleNumericEntryChange(entry.id, "value2", e.target.value)}
+                />
+            </div>
+            </div>
+        )
+      case "percentage":
+        return (
+          <div className="grid grid-cols-1 gap-2">
+            <div>
+              <Label htmlFor={`${entry.id}-percentage`}>Percentage (%)</Label>
+              <Input
+                id={`${entry.id}-percentage`}
+                type="number"
+                placeholder="0"
+                value={entry.value1 ?? ""}
+                onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
+              />
+            </div>
+          </div>
+        )
       default:
         return null
     }
@@ -249,6 +287,8 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                         <SelectItem value="fixed">Fixed Price</SelectItem>
                         <SelectItem value="time">Time</SelectItem>
                         <SelectItem value="weight">Weight</SelectItem>
+                        <SelectItem value="quantity">Quantity</SelectItem>
+                        <SelectItem value="percentage">Percentage</SelectItem>
                     </SelectContent>
                 </Select>
              </div>
