@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PlusCircle, Trash2, X, Check, GripVertical } from "lucide-react"
+import { PlusCircle, Trash2, X, GripVertical } from "lucide-react"
 import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -452,7 +452,9 @@ function MultiSelect({ options, selected, onChange, className, placeholder = "Se
                   className="mr-1"
                 >
                   {label}
-                  <button
+                  <span
+                    role="button"
+                    aria-label={`Remove ${label} from selection`}
                     className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     onMouseDown={(e) => {
                       e.preventDefault();
@@ -461,7 +463,7 @@ function MultiSelect({ options, selected, onChange, className, placeholder = "Se
                     onClick={() => onChange(selected.filter(v => v !== value))}
                   >
                     <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                  </button>
+                  </span>
                 </Badge>
               );
             })}
