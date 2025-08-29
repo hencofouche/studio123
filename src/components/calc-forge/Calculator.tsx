@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PlusCircle, Trash2, X, GripVertical } from "lucide-react"
+import { PlusCircle, Trash2, X, GripVertical, ArrowUp, ArrowDown } from "lucide-react"
 import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -69,6 +69,16 @@ export default function Calculator({ template, onTemplateChange, values, onValue
     });
     setNewCategoryName("");
   };
+
+  const handleMoveCategory = (index: number, direction: 'up' | 'down') => {
+    const newLines = [...template.lines];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= newLines.length) return;
+    const [movedItem] = newLines.splice(index, 1);
+    newLines.splice(newIndex, 0, movedItem);
+    onTemplateChange({ ...template, lines: newLines });
+  };
+
 
   const handleAddEntry = (defId: string) => {
     const newEntry: LineItemEntry = {
@@ -351,16 +361,23 @@ export default function Calculator({ template, onTemplateChange, values, onValue
           </Button>
         </div>
 
-        {template.lines.map((lineDef) => {
+        {template.lines.map((lineDef, index) => {
           const entries = values.filter(v => v.defId === lineDef.id);
-          const percentageEntries = values.filter(v => v.type === 'percentage');
+          const percentageEntries = values.filter(v => v.type === 'percentage' && v.defId === lineDef.id);
 
           return (
             <Card key={lineDef.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+                     <div className="flex flex-col">
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => handleMoveCategory(index, 'up')} disabled={index === 0}>
+                           <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => handleMoveCategory(index, 'down')} disabled={index === template.lines.length - 1}>
+                           <ArrowDown className="h-4 w-4" />
+                        </Button>
+                     </div>
                     <CardTitle className="text-base font-medium flex items-center gap-2">
                       {lineDef.name}
                     </CardTitle>
@@ -371,8 +388,8 @@ export default function Calculator({ template, onTemplateChange, values, onValue
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {entries.length > 0 ? (
-                  entries.map(entry => renderEntry(entry))
+                 {[...entries, ...percentageEntries].length > 0 ? (
+                  [...entries, ...percentageEntries].map(entry => renderEntry(entry))
                 ) : (
                   <p className="text-sm text-muted-foreground px-6 pb-4">No entries for {lineDef.name}. Click "Add Entry" to start.</p>
                 )}
@@ -381,19 +398,16 @@ export default function Calculator({ template, onTemplateChange, values, onValue
           )
         })}
 
-        {values.some(v => v.type === 'percentage') && (
+        {values.some(v => v.type === 'percentage' && !v.defId) && (
             <Card>
                 <CardHeader>
                     <CardTitle className="text-base font-medium">Adjustments</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    {values.filter(v => v.type === 'percentage').map(entry => renderEntry(entry))}
+                    {values.filter(v => v.type === 'percentage' && !v.defId).map(entry => renderEntry(entry))}
                 </CardContent>
             </Card>
         )}
-         <Button variant="outline" className="w-full" onClick={() => handleAddEntry('')}>
-            <PlusCircle className="mr-2" /> Add Percentage/Adjustment
-          </Button>
       </div>
 
       <div className="lg:col-span-1 space-y-6 sticky top-4">
