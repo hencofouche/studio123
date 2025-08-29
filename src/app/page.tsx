@@ -55,10 +55,7 @@ const defaultTemplate: Template = {
   id: 'default',
   name: 'New Calculation',
   currency: 'USD',
-  lines: [
-    { id: crypto.randomUUID(), name: 'Labor' },
-    { id: crypto.randomUUID(), name: 'Materials' },
-  ]
+  lines: []
 }
 
 export default function Home() {
