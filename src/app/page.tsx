@@ -7,10 +7,9 @@ import {
   Sigma,
   Trash2,
   PanelLeft,
-  PlusCircle,
 } from "lucide-react"
 
-import type { Template, LineItemValues, LineItemDefinition } from "@/lib/types"
+import type { Template } from "@/lib/types"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,6 +38,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { ModeToggle } from "@/components/mode-toggle"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+
 
 const defaultTemplate: Template = {
   id: 'default',
@@ -54,7 +65,9 @@ export default function Home() {
   const { toast } = useToast()
   const [templates, setTemplates] = useLocalStorage<Template[]>("calc-forge-templates", [])
   const [activeTemplateId, setActiveTemplateId] = React.useState<string | null>(null)
-  const [lineItemValues, setLineItemValues] = useLocalStorage<LineItemValues>("calc-forge-values", [])
+  const [lineItemValues, setLineItemValues] = useLocalStorage<any>("calc-forge-values", [])
+  const [newTemplateName, setNewTemplateName] = React.useState("")
+  const [isCreateDialogOpen, setCreateDialogOpen] = React.useState(false)
 
   React.useEffect(() => {
     if (templates.length === 0) {
@@ -65,7 +78,7 @@ export default function Home() {
       setLineItemValues([]);
     } else if (!activeTemplateId || !templates.some(t => t.id === activeTemplateId)) {
       // If there's no active template or the active one is invalid, select the first one
-      setActiveTemplateId(templates[0].id);
+      setActiveTemplateId(templates.length > 0 ? templates[0].id : null);
       // Don't clear values if we're just re-selecting
     }
   }, [templates, activeTemplateId, setTemplates, setLineItemValues]);
@@ -77,15 +90,18 @@ export default function Home() {
   )
 
   const handleCreateTemplate = () => {
-    const newTemplate = { ...defaultTemplate, id: crypto.randomUUID(), name: `New Calculation ${templates.length + 1}` };
+    const name = newTemplateName.trim() || `New Calculation ${templates.length + 1}`;
+    const newTemplate = { ...defaultTemplate, id: crypto.randomUUID(), name };
     const updatedTemplates = [...templates, newTemplate];
     setTemplates(updatedTemplates);
     setActiveTemplateId(newTemplate.id);
     setLineItemValues([]);
     toast({
       title: "New Calculation Created",
-      description: `Switched to "${newTemplate.name}".`,
+      description: `Switched to "${name}".`,
     });
+    setNewTemplateName("");
+    setCreateDialogOpen(false);
   }
   
   const handleUpdateTemplate = (updatedTemplate: Template) => {
@@ -96,8 +112,6 @@ export default function Home() {
   const handleSelectTemplate = (id: string) => {
     if (activeTemplateId !== id) {
       setActiveTemplateId(id)
-      // When switching templates, we might want to clear values,
-      // or in the future, store values per template. For now, we clear.
       setLineItemValues([])
     }
   }
@@ -110,13 +124,10 @@ export default function Home() {
     setTemplates(updatedTemplates);
 
     if (activeTemplateId === id) {
-      // If the active template is deleted, switch to another one or create a new default
       if (updatedTemplates.length > 0) {
         setActiveTemplateId(updatedTemplates[0].id);
       } else {
-        const newDefaultTemplate = { ...defaultTemplate, id: crypto.randomUUID() };
-        setTemplates([newDefaultTemplate]);
-        setActiveTemplateId(newDefaultTemplate.id);
+        setActiveTemplateId(null)
       }
       setLineItemValues([]);
     }
@@ -127,6 +138,13 @@ export default function Home() {
       variant: "destructive",
     });
   }
+
+  const handleTitleChange = (newName: string) => {
+    if (activeTemplate) {
+      handleUpdateTemplate({ ...activeTemplate, name: newName });
+    }
+  };
+
 
   return (
     <SidebarProvider>
@@ -141,13 +159,40 @@ export default function Home() {
         </SidebarHeader>
         <SidebarContent>
           <div className="p-2">
-            <Button
-              className="w-full"
-              onClick={handleCreateTemplate}
-            >
-              <FilePlus2 />
-              <span>New Calculation</span>
-            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <FilePlus2 />
+                  <span>New Calculation</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Calculation</DialogTitle>
+                  <DialogDescription>
+                    Give your new calculation a name to get started.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={newTemplateName}
+                      onChange={(e) => setNewTemplateName(e.target.value)}
+                      className="col-span-3"
+                      placeholder="e.g., Kitchen Renovation"
+                      onKeyDown={(e) => e.key === 'Enter' && handleCreateTemplate()}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" onClick={handleCreateTemplate}>Create</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
           <SidebarMenu>
             <li className="px-4 pt-2 pb-1 text-xs font-medium text-muted-foreground">
@@ -205,9 +250,11 @@ export default function Home() {
               <PanelLeft />
             </SidebarTrigger>
             {activeTemplate && (
-              <h2 className="text-xl font-semibold">
-                {activeTemplate.name}
-              </h2>
+              <Input
+                value={activeTemplate.name}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                className="text-xl font-semibold border-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none p-0 h-auto"
+              />
             )}
           </div>
         </div>
@@ -221,17 +268,47 @@ export default function Home() {
               onValuesChange={setLineItemValues}
             />
           ) : (
-            <div className="flex h-[calc(100vh-10rem)] items-center justify-center rounded-lg border-2 border-dashed bg-card">
+             <div className="flex h-[calc(100vh-10rem)] items-center justify-center rounded-lg border-2 border-dashed bg-card">
               <div className="text-center">
                 <FolderOpen className="mx-auto size-12 text-muted-foreground" />
                 <h3 className="mt-4 text-lg font-medium">No Calculation Selected</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Create a new calculation or select one from the sidebar.
                 </p>
-                <Button className="mt-4" onClick={handleCreateTemplate}>
-                  <FilePlus2 />
-                  Create Calculation
-                </Button>
+                 <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="mt-4">
+                      <FilePlus2 />
+                      Create Calculation
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Calculation</DialogTitle>
+                      <DialogDescription>
+                        Give your new calculation a name to get started.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name-main" className="text-right">
+                          Name
+                        </Label>
+                        <Input
+                          id="name-main"
+                          value={newTemplateName}
+                          onChange={(e) => setNewTemplateName(e.target.value)}
+                          className="col-span-3"
+                          placeholder="e.g., Kitchen Renovation"
+                           onKeyDown={(e) => e.key === 'Enter' && handleCreateTemplate()}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" onClick={handleCreateTemplate}>Create</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           )}
