@@ -26,6 +26,7 @@ interface CalculatedLine {
 }
 
 function formatCurrency(value: number, currency: string) {
+  if (!currency) return ""
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,

@@ -32,6 +32,7 @@ const COLORS = [
 const CustomTooltip = ({ active, payload, currency }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    if (!currency) return null;
     return (
       <div className="rounded-lg border bg-background p-2 shadow-sm">
         <div className="grid grid-cols-2 gap-2">
