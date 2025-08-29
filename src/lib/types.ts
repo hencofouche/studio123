@@ -22,6 +22,7 @@ export interface LineItemEntry {
   type: CalculationType; // Each entry now has its own calculation type
   value1?: number; // For fixed: quantity; for time: hours; for weight: amount; for percentage: percent
   value2?: number; // for fixed: price; for time: rate; for weight: rate;
+  appliesTo?: string[]; // For percentage: array of line item definition IDs it applies to
 }
 
 // The values are now stored as an array of entries

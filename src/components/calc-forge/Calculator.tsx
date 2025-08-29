@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PlusCircle, Trash2 } from "lucide-react"
+import { PlusCircle, Trash2, X } from "lucide-react"
 import type { Template, LineItemValues, LineItemDefinition, CalculationType, LineItemEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,9 @@ import { cn } from "@/lib/utils"
 import { CalculationTypeIcon } from "@/components/icons"
 import CostChart from "./CostChart"
 import { Separator } from "@/components/ui/separator"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Badge } from "@/components/ui/badge"
 
 interface CalculatorProps {
   template: Template
@@ -52,11 +55,15 @@ function getEntryTotal(entry: LineItemEntry): number {
 
 export default function Calculator({ template, values, onValuesChange }: CalculatorProps) {
   const handleAddEntry = (defId: string) => {
+    const lineDef = template.lines.find(l => l.id === defId);
+    if (!lineDef) return;
+
     const newEntry: LineItemEntry = {
       id: crypto.randomUUID(),
       defId,
       name: "",
-      type: "fixed",
+      type: lineDef.type === 'percentage' ? 'percentage' : 'fixed',
+      appliesTo: lineDef.type === 'percentage' ? lineDef.appliesTo : undefined
     }
     onValuesChange([...values, newEntry])
   }
@@ -65,7 +72,7 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
     onValuesChange(values.filter(entry => entry.id !== entryId))
   }
 
-  const handleEntryChange = (entryId: string, field: keyof Omit<LineItemEntry, "id" | "defId">, value: string | number) => {
+  const handleEntryChange = (entryId: string, field: keyof Omit<LineItemEntry, "id" | "defId">, value: any) => {
     onValuesChange(
       values.map(entry => {
         if (entry.id === entryId) {
@@ -73,6 +80,7 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
           if (field === 'type') {
             updatedEntry.value1 = undefined;
             updatedEntry.value2 = undefined;
+            updatedEntry.appliesTo = value === 'percentage' ? [] : undefined;
           }
           return updatedEntry;
         }
@@ -93,38 +101,47 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
     const nonPercentageLines: CalculatedLine[] = []
     
     values.forEach((entry) => {
-      const def = template.lines.find(d => d.id === entry.defId)
-      if (def && entry.type !== "percentage") {
+      if (entry.type !== "percentage") {
+        const def = template.lines.find(d => d.id === entry.defId)
         const lineTotal = getEntryTotal(entry)
         nonPercentageLines.push({ id: entry.id, name: entry.name || "Untitled", total: lineTotal, type: entry.type })
-        lineTotals[def.id] = (lineTotals[def.id] || 0) + lineTotal;
+        if (def) {
+          lineTotals[def.id] = (lineTotals[def.id] || 0) + lineTotal;
+        }
       }
     })
 
-    const subtotal = nonPercentageLines.reduce((acc, line) => acc + line.total, 0);
+    const currentSubtotal = nonPercentageLines.reduce((acc, line) => acc + line.total, 0);
 
     const percentageLines: CalculatedLine[] = []
-    template.lines.forEach((lineDef) => {
-      const percentageEntry = values.find(e => e.defId === lineDef.id && e.type === 'percentage');
-      if (lineDef.type === "percentage" && percentageEntry) {
-        let baseTotal = subtotal;
-        if (lineDef.appliesTo && lineDef.appliesTo.length > 0) {
-           baseTotal = lineDef.appliesTo.reduce((acc, appliedId) => acc + (lineTotals[appliedId] || 0), 0);
+    values.forEach((entry) => {
+      if (entry.type === 'percentage') {
+        const lineDef = template.lines.find(d => d.id === entry.defId)
+        if (!lineDef) return;
+        
+        let baseTotal = currentSubtotal;
+        if (entry.appliesTo && entry.appliesTo.length > 0) {
+           baseTotal = entry.appliesTo.reduce((acc, appliedId) => acc + (lineTotals[appliedId] || 0), 0);
         }
         
-        const percentage = percentageEntry?.value1 || 0
+        const percentage = entry.value1 || 0
         const lineTotal = baseTotal * (percentage / 100)
-        percentageLines.push({ id: percentageEntry.id, name: lineDef.name, total: lineTotal, type: 'percentage' })
+        percentageLines.push({ id: entry.id, name: entry.name || lineDef.name, total: lineTotal, type: 'percentage' })
       }
     })
 
     const allLines = [...nonPercentageLines, ...percentageLines]
-    const total = allLines.reduce((acc, line) => acc + line.total, 0)
+    const newTotal = allLines.reduce((acc, line) => acc + line.total, 0)
 
-    return { calculatedLines: allLines, subtotal, total }
+    return { calculatedLines: allLines, subtotal: currentSubtotal, total: newTotal }
   }, [template.lines, values])
 
   const renderInputs = (entry: LineItemEntry) => {
+    const lineDef = template.lines.find(l => l.id === entry.defId);
+    if (!lineDef) return null;
+
+    const availableLinesForPercentage = template.lines.filter(l => l.id !== lineDef.id);
+
     switch (entry.type) {
       case "fixed":
         return (
@@ -214,47 +231,39 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                 onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
               />
             </div>
+             <div>
+              <Label>Applies To</Label>
+                <MultiSelect
+                  options={availableLinesForPercentage.map(l => ({ value: l.id, label: l.name }))}
+                  selected={entry.appliesTo || []}
+                  onChange={(selected) => handleEntryChange(entry.id, 'appliesTo', selected)}
+                  placeholder="Subtotal of all items"
+                  className="w-full"
+                />
+            </div>
           </div>
         )
       default:
         return null
     }
   }
-  
-  const renderPercentageInput = (lineDef: LineItemDefinition) => {
-    const entry = values.find(e => e.defId === lineDef.id)
+
+  const renderEntry = (entry: LineItemEntry) => {
+    const lineDef = template.lines.find(l => l.id === entry.defId);
+    if (!lineDef) return null;
+
+    // A percentage line defined in the template should only have one entry that cannot be deleted
+    const isFixedPercentage = lineDef.type === 'percentage';
+    
+    let totalForEntry: number;
+    if (entry.type === 'percentage') {
+       const percentageLine = calculatedLines.find(l => l.id === entry.id);
+       totalForEntry = percentageLine?.total || 0;
+    } else {
+        totalForEntry = getEntryTotal(entry);
+    }
+
     return (
-       <div className="grid grid-cols-1 gap-2">
-        <div>
-          <Label htmlFor={`${lineDef.id}-percentage`}>Percentage (%)</Label>
-          <Input
-            id={`${lineDef.id}-percentage`}
-            type="number"
-            placeholder="0"
-            value={entry?.value1 ?? ""}
-            onChange={(e) => {
-              const value = e.target.value;
-               if (entry) {
-                 handleNumericEntryChange(entry.id, "value1", value)
-               } else {
-                 const newEntry: LineItemEntry = {
-                    id: crypto.randomUUID(),
-                    defId: lineDef.id,
-                    name: lineDef.name,
-                    type: 'percentage',
-                    value1: parseFloat(value)
-                 };
-                 onValuesChange([...values, newEntry]);
-               }
-            }}
-          />
-        </div>
-      </div>
-    )
-  }
-
-
-  const renderEntry = (entry: LineItemEntry) => (
     <div key={entry.id} className="p-4 border-b last:border-b-0">
        <div className="flex flex-col sm:flex-row items-start gap-4">
           <div className="flex-1 space-y-2 w-full">
@@ -264,8 +273,13 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                     value={entry.name}
                     onChange={(e) => handleEntryChange(entry.id, "name", e.target.value)}
                     className="text-base font-medium flex-1"
+                    disabled={isFixedPercentage}
                 />
-                <Select value={entry.type} onValueChange={(value) => handleEntryChange(entry.id, "type", value as CalculationType)}>
+                <Select 
+                  value={entry.type} 
+                  onValueChange={(value) => handleEntryChange(entry.id, "type", value as CalculationType)}
+                  disabled={isFixedPercentage}
+                >
                     <SelectTrigger className="w-full sm:w-[150px]">
                         <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -280,47 +294,51 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
              {renderInputs(entry)}
           </div>
           <div className="text-right w-full sm:w-auto">
-             <div className="font-bold text-lg mb-2">{formatCurrency(getEntryTotal(entry), template.currency)}</div>
-             <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                onClick={() => handleRemoveEntry(entry.id)}
-             >
-                <Trash2 className="size-4" />
-             </Button>
+             <div className="font-bold text-lg mb-2">{formatCurrency(totalForEntry, template.currency)}</div>
+             {!isFixedPercentage && (
+              <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => handleRemoveEntry(entry.id)}
+              >
+                  <Trash2 className="size-4" />
+              </Button>
+             )}
           </div>
        </div>
     </div>
-  );
+  )};
+
+  // Ensure there's always one entry for percentage line definitions
+  React.useEffect(() => {
+    let changed = false;
+    const newValues = [...values];
+    template.lines.forEach(lineDef => {
+      if (lineDef.type === 'percentage') {
+        const hasEntry = values.some(v => v.defId === lineDef.id);
+        if (!hasEntry) {
+          changed = true;
+          newValues.push({
+            id: crypto.randomUUID(),
+            defId: lineDef.id,
+            name: lineDef.name,
+            type: 'percentage',
+            value1: 0,
+            appliesTo: lineDef.appliesTo || []
+          });
+        }
+      }
+    });
+    if (changed) {
+      onValuesChange(newValues);
+    }
+  }, [template.lines, values, onValuesChange]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <div className="lg:col-span-2 space-y-4">
         {template.lines.map((lineDef) => {
-          if (lineDef.type === 'percentage') {
-            const percentageLine = calculatedLines.find(l => {
-              const entry = values.find(v => v.id === l.id);
-              return entry?.defId === lineDef.id;
-            });
-            return (
-              <Card key={lineDef.id}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    <CalculationTypeIcon type="percentage" className="h-4 w-4 text-muted-foreground" />
-                    {lineDef.name}
-                  </CardTitle>
-                  <span className="text-lg font-bold">
-                    {formatCurrency(percentageLine?.total || 0, template.currency)}
-                  </span>
-                </CardHeader>
-                <CardContent>
-                  {renderPercentageInput(lineDef)}
-                </CardContent>
-              </Card>
-            )
-          }
-
           const entries = values.filter(v => v.defId === lineDef.id);
 
           return (
@@ -328,18 +346,21 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-medium flex items-center gap-2">
+                    {lineDef.type === 'percentage' && <CalculationTypeIcon type="percentage" className="h-4 w-4 text-muted-foreground" />}
                     {lineDef.name}
                   </CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => handleAddEntry(lineDef.id)}>
-                    <PlusCircle className="mr-2" /> Add Entry
-                  </Button>
+                  {lineDef.type !== 'percentage' && (
+                    <Button variant="outline" size="sm" onClick={() => handleAddEntry(lineDef.id)}>
+                      <PlusCircle className="mr-2" /> Add Entry
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 {entries.length > 0 ? (
                   entries.map(entry => renderEntry(entry))
                 ) : (
-                  <p className="text-sm text-muted-foreground px-6 pb-4">No entries for {lineDef.name}. Click "Add" to start.</p>
+                  lineDef.type !== 'percentage' && <p className="text-sm text-muted-foreground px-6 pb-4">No entries for {lineDef.name}. Click "Add" to start.</p>
                 )}
               </CardContent>
             </Card>
@@ -359,12 +380,17 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
                         <span>Subtotal</span>
                         <span>{formatCurrency(subtotal, template.currency)}</span>
                     </div>
-                    {calculatedLines.filter(l => l.type === 'percentage').map(line => (
-                        <div key={line.id} className="flex justify-between text-muted-foreground">
-                            <span>{line.name} ({values.find(v => v.id === line.id)?.value1 || 0}%)</span>
-                            <span>{formatCurrency(line.total, template.currency)}</span>
-                        </div>
-                    ))}
+                    {calculatedLines.filter(l => l.type === 'percentage').map(line => {
+                         const entry = values.find(v => v.id === line.id)
+                         if (!entry) return null;
+                         const lineDef = template.lines.find(l => l.id === entry.defId);
+                         return (
+                            <div key={line.id} className="flex justify-between text-muted-foreground">
+                                <span>{line.name} ({values.find(v => v.id === line.id)?.value1 || 0}%)</span>
+                                <span>{formatCurrency(line.total, template.currency)}</span>
+                            </div>
+                         )
+                    })}
                     <Separator className="my-2"/>
                     </>
                 )}
@@ -379,4 +405,90 @@ export default function Calculator({ template, values, onValuesChange }: Calcula
       </div>
     </div>
   )
+}
+
+interface MultiSelectProps {
+  options: { label: string; value: string }[]
+  selected: string[]
+  onChange: (selected: string[]) => void
+  className?: string
+  placeholder?: string
+}
+
+function MultiSelect({ options, selected, onChange, className, placeholder = "Select..." }: MultiSelectProps) {
+  const [open, setOpen] = React.useState(false);
+  const selectedValues = new Set(selected);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn("w-full justify-between h-auto min-h-10", className)}
+        >
+          <div className="flex gap-1 flex-wrap">
+            {selected.length === 0 && placeholder}
+            {selected.map(value => {
+              const label = options.find(opt => opt.value === value)?.label;
+              return (
+                <Badge
+                  key={value}
+                  variant="secondary"
+                  className="mr-1"
+                >
+                  {label}
+                  <button
+                    className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={() => onChange(selected.filter(v => v !== value))}
+                  >
+                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </Badge>
+              );
+            })}
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command>
+          <CommandInput placeholder="Search..." />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  onSelect={() => {
+                    if (selectedValues.has(option.value)) {
+                      onChange(selected.filter(v => v !== option.value));
+                    } else {
+                      onChange([...selected, option.value]);
+                    }
+                  }}
+                >
+                  <div
+                    className={cn(
+                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                      selectedValues.has(option.value)
+                        ? "bg-primary text-primary-foreground"
+                        : "opacity-50 [&_svg]:invisible"
+                    )}
+                  >
+                    <Check className={cn("h-4 w-4")} />
+                  </div>
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }
