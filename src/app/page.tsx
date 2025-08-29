@@ -9,7 +9,7 @@ import {
   PanelLeft,
 } from "lucide-react"
 
-import type { Template } from "@/lib/types"
+import type { Template, LineItemValues } from "@/lib/types"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
 import {
@@ -62,7 +62,7 @@ export default function Home() {
   const { toast } = useToast()
   const [templates, setTemplates] = useLocalStorage<Template[]>("calc-forge-templates", [])
   const [activeTemplateId, setActiveTemplateId] = useLocalStorage<string | null>("calc-forge-active", null)
-  const [lineItemValues, setLineItemValues] = useLocalStorage<any>("calc-forge-values", [])
+  const [allValues, setAllValues] = useLocalStorage<{ [key: string]: LineItemValues }>("calc-forge-all-values", {})
   const [newTemplateName, setNewTemplateName] = React.useState("")
   const [isCreateDialogOpen, setCreateDialogOpen] = React.useState(false)
 
@@ -70,9 +70,8 @@ export default function Home() {
     // On initial load, if the activeTemplateId from localStorage is invalid, reset it.
     if (activeTemplateId && !templates.some(t => t.id === activeTemplateId)) {
       setActiveTemplateId(null);
-      setLineItemValues([]);
     }
-  }, [templates, activeTemplateId, setActiveTemplateId, setLineItemValues]);
+  }, [templates, activeTemplateId, setActiveTemplateId]);
 
 
   const activeTemplate = React.useMemo(
@@ -80,13 +79,29 @@ export default function Home() {
     [templates, activeTemplateId]
   )
 
+  const lineItemValues = React.useMemo(() => {
+    if (!activeTemplateId) return [];
+    return allValues[activeTemplateId] || [];
+  }, [allValues, activeTemplateId]);
+
+  const handleSetLineItemValues = (newValues: LineItemValues) => {
+    if (!activeTemplateId) return;
+    setAllValues({
+      ...allValues,
+      [activeTemplateId]: newValues
+    });
+  };
+
   const handleCreateTemplate = () => {
     const name = newTemplateName.trim() || `New Calculation ${templates.length + 1}`;
     const newTemplate = { ...defaultTemplate, id: crypto.randomUUID(), name };
     const updatedTemplates = [...templates, newTemplate];
     setTemplates(updatedTemplates);
     setActiveTemplateId(newTemplate.id);
-    setLineItemValues([]);
+    setAllValues({
+      ...allValues,
+      [newTemplate.id]: []
+    });
     toast({
       title: "New Calculation Created",
       description: `Switched to "${name}".`,
@@ -103,7 +118,6 @@ export default function Home() {
   const handleSelectTemplate = (id: string) => {
     if (activeTemplateId !== id) {
       setActiveTemplateId(id)
-      setLineItemValues([])
     }
   }
 
@@ -114,13 +128,17 @@ export default function Home() {
     const updatedTemplates = templates.filter((t) => t.id !== id);
     setTemplates(updatedTemplates);
 
+    // Also delete values associated with the template
+    const newAllValues = { ...allValues };
+    delete newAllValues[id];
+    setAllValues(newAllValues);
+
     if (activeTemplateId === id) {
       if (updatedTemplates.length > 0) {
         setActiveTemplateId(updatedTemplates[0].id);
       } else {
         setActiveTemplateId(null)
       }
-      setLineItemValues([]);
     }
 
     toast({
@@ -256,7 +274,7 @@ export default function Home() {
               template={activeTemplate}
               onTemplateChange={handleUpdateTemplate}
               values={lineItemValues}
-              onValuesChange={setLineItemValues}
+              onValuesChange={handleSetLineItemValues}
             />
           ) : (
              <div className="flex h-[calc(100vh-10rem)] items-center justify-center rounded-lg border-2 border-dashed bg-card">
