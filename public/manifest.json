@@ -1,16 +1,16 @@
 {
   "name": "TPSA Calculator",
   "short_name": "TPSA Calc",
+  "description": "The TPSA Calculator.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "icons": [
     {
       "src": "/icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
-  ],
-  "theme_color": "#000000",
-  "background_color": "#000000",
-  "display": "standalone",
-  "start_url": "/"
+  ]
 }

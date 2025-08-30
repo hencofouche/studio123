@@ -1,18 +1,15 @@
-
-import type {NextConfig} from 'next';
+/** @type {import('next').NextConfig} */
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
-  // Solution: Disable the default behavior of generating icons.
-  // We will provide our own in the manifest.json.
-  generateEtc: false, 
-  // Other PWA options...
+  // add your own icons to src/app/manifest.ts
+  // to re-generate manifest.json, you can visit https://tomayac.github.io/pwa-manifest-generator/
 });
 
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
