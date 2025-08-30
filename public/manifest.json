@@ -1,38 +1,16 @@
 {
   "name": "TPSA Calculator",
   "short_name": "TPSA Calc",
-  "description": "A powerful and flexible calculator for creating custom calculation templates.",
   "icons": [
     {
-      "src": "/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ],
   "theme_color": "#000000",
-  "background_color": "#ffffff",
-  "start_url": "https://tpsacalculator.vercel.app/",
+  "background_color": "#000000",
   "display": "standalone",
-  "orientation": "portrait",
-  "file_handlers": [
-    {
-      "action": "/?source=pwa",
-      "accept": {
-        "application/json": [".json"]
-      },
-      "icons": [
-        {
-          "src": "/icon-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ],
-      "launch_type": "single-client"
-    }
-  ]
+  "start_url": "/"
 }

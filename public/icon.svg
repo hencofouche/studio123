@@ -1,42 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
-  <defs>
-    <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
-    </linearGradient>
-    <style>
-      .text { font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; fill: #282828; }
-    </style>
-  </defs>
-
-  <!-- Calculator Body -->
-  <rect x="10" y="10" width="80" height="80" rx="8" ry="8" fill="#1C1C1C"/>
-  <rect x="12" y="12" width="76" height="76" rx="6" ry="6" fill="#282828"/>
-
-  <!-- Screen -->
-  <rect x="18" y="18" width="64" height="18" rx="4" ry="4" fill="url(#gold-gradient)" />
-  <rect x="19" y="19" width="62" height="16" rx="3" ry="3" fill="#DAA520" />
-  <text x="50" y="30" class="text" text-anchor="middle">TPSA</text>
-
-  <!-- Buttons -->
-  <g id="buttons">
-    <!-- Row 1 -->
-    <rect x="20" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="36" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="52" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="68" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <!-- Row 2 -->
-    <rect x="20" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="36" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="52" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="68" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <!-- Row 3 -->
-    <rect x="20" y="64" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="36" y="64" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="52" y="64" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="68" y="64" width="20" height="8" rx="2" fill="url(#gold-gradient)" transform="translate(-8, 8) rotate(90 74 68)"/>
-    <!-- Row 4 -->
-    <rect x="20" y="76" width="28" height="8" rx="2" fill="url(#gold-gradient)"/>
-    <rect x="52" y="76" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
-  </g>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="512" height="512" rx="64" fill="#1A1A1A"/>
+<rect x="64" y="96" width="384" height="128" rx="16" fill="#D4AF37"/>
+<rect x="80" y="112" width="352" height="96" rx="8" fill="#111111"/>
+<path d="M104 128H152V144H104V128ZM168 128H216V144H168V128ZM232 128H280V144H232V128ZM296 128H344V144H296V128ZM360 128H408V144H360V128ZM104 160H152V176H104V160ZM168 160H216V176H168V160ZM232 160H280V176H232V160ZM296 160H344V176H296V160ZM360 160H408V176H360V160Z" fill="#D4AF37"/>
+<path d="M128 256H192V304H128V256ZM224 256H288V304H224V256ZM320 256H384V304H320V256ZM128 320H192V368H128V320ZM224 320H288V368H224V320ZM320 320H384V368H320V320ZM128 384H192V432H128V384ZM224 384H384V432H224V384Z" fill="#D4AF37"/>
 </svg>
