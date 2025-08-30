@@ -159,11 +159,14 @@ export default function Home() {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
-            <Sigma className="size-7 text-primary" />
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              TPSA Calculator
-            </h1>
+          <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-2">
+              <Sigma className="size-7 text-primary" />
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                TPSA Calculator
+              </h1>
+            </div>
+            <ModeToggle />
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -249,7 +252,7 @@ export default function Home() {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-          <ModeToggle />
+          {/* ModeToggle was here */}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
