@@ -32,5 +32,3 @@ const nextConfig = {
 };
 
 module.exports = withPWA(nextConfig);
-
-    
