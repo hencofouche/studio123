@@ -9,8 +9,8 @@ export const usePwaUpdate = () => {
   const { toast } = useToast()
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator && window.workbox !== undefined) {
-      const wb = window.workbox
+    if (typeof window !== "undefined" && "serviceWorker" in navigator && (window as any).workbox !== undefined) {
+      const wb = (window as any).workbox
 
       const promptToUpdate = () => {
         toast({

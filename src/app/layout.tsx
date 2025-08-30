@@ -5,7 +5,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
-import { usePwaUpdate } from '@/hooks/use-pwa-update';
+// import { usePwaUpdate } from '@/hooks/use-pwa-update';
 
 // This is a static export, but we have client components.
 // export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  usePwaUpdate();
+  // usePwaUpdate();
 
   return (
     <html lang="en" suppressHydrationWarning>
