@@ -56,7 +56,7 @@ import { Label } from "@/components/ui/label"
 const defaultTemplate: Template = {
   id: 'default',
   name: 'New Calculation',
-  currency: 'ZAR',
+  currency: 'USD',
   lines: []
 }
 
@@ -253,7 +253,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <Sigma className="size-7 text-primary" />
               <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                TPSA Calculator
+                CalcForge
               </h1>
             </div>
             <ModeToggle />
@@ -432,5 +432,3 @@ export default function Home() {
     </SidebarProvider>
   )
 }
-
-    

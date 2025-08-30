@@ -9,8 +9,8 @@ import { usePwaUpdate } from '@/hooks/use-pwa-update';
 
 // This is a static export, but we have client components.
 // export const metadata: Metadata = {
-//   title: 'TPSA Calculator',
-//   description: 'The TPSA Calculator.',
+//   title: 'CalcForge',
+//   description: 'The CalcForge Calculator.',
 //   manifest: '/manifest.json',
 // };
 
@@ -24,8 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>TPSA Calculator</title>
-        <meta name="description" content="The TPSA Calculator." />
+        <title>CalcForge</title>
+        <meta name="description" content="The CalcForge Calculator." />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
