@@ -1,49 +1,6 @@
-
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="512" height="512" rx="60" fill="#09090B"/>
-<rect x="64" y="64" width="384" height="128" rx="16" fill="#1E1E1E"/>
-<g filter="url(#filter0_d_101_2)">
-<rect x="80" y="80" width="352" height="96" rx="8" fill="#D4AF37"/>
-<text x="256" y="140" font-family="monospace" font-size="64" fill="#09090B" text-anchor="middle" dominant-baseline="middle">0.00</text>
-</g>
-<rect x="64" y="224" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="160" y="224" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="256" y="224" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="352" y="224" width="96" height="56" rx="8" fill="#D4AF37"/>
-<rect x="64" y="296" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="160" y="296" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="256" y="296" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="352" y="296" width="96" height="128" rx="8" fill="#D4AF37"/>
-<rect x="64" y="368" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="160" y="368" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="256" y="368" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="64" y="440" width="176" height="56" rx="8" fill="#333333"/>
-<rect x="256" y="440" width="80" height="56" rx="8" fill="#333333"/>
-<rect x="352" y="440" width="96" height="56" rx="8" fill="#D4AF37"/>
-<text x="104" y="252" font-family="sans-serif" font-size="24" fill="white">7</text>
-<text x="200" y="252" font-family="sans-serif" font-size="24" fill="white">8</text>
-<text x="296" y="252" font-family="sans-serif" font-size="24" fill="white">9</text>
-<text x="400" y="252" font-family="sans-serif" font-size="24" fill="#09090B">/</text>
-<text x="104" y="324" font-family="sans-serif" font-size="24" fill="white">4</text>
-<text x="200" y="324" font-family="sans-serif" font-size="24" fill="white">5</text>
-<text x="296" y="324" font-family="sans-serif" font-size="24" fill="white">6</text>
-<text x="400" y="360" font-family="sans-serif" font-size="24" fill="#09090B">+</text>
-<text x="104" y="396" font-family="sans-serif" font-size="24" fill="white">1</text>
-<text x="200" y="396" font-family="sans-serif" font-size="24" fill="white">2</text>
-<text x="296" y="396" font-family="sans-serif" font-size="24" fill="white">3</text>
-<text x="152" y="468" font-family="sans-serif" font-size="24" fill="white">0</text>
-<text x="296" y="468" font-family="sans-serif" font-size="24" fill="white">.</text>
-<text x="400" y="468" font-family="sans-serif" font-size="24" fill="#09090B">=</text>
-<defs>
-<filter id="filter0_d_101_2" x="76" y="76" width="360" height="104" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="4"/>
-<feGaussianBlur stdDeviation="2"/>
-<feComposite in2="hardAlpha" operator="out"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_101_2"/>
-<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_101_2" result="shape"/>
-</filter>
-</defs>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="48" height="48" rx="12" fill="#F0F4FF"/>
+<path d="M29.697 12.8335L22.6953 28.3672H18.9062L16.2988 23.0158L13.7227 28.3672H10.5371L16.3105 16.4824H18.8945L21.0312 20.8066L23.1367 16.4824H25.0742L22.1816 22.3887L29.697 12.8335Z" fill="#4285F4"/>
+<path d="M28.0943 32.7554L27.1802 30.8843H22.3169L21.3911 32.7554H17.9204L24.2388 20.9116H25.2632L31.5816 32.7554H28.0943ZM22.9907 29.3511H26.5005L24.7456 25.7534L22.9907 29.3511Z" fill="#8E43E7"/>
+<path d="M36.1664 27.9177C36.1664 30.6403 34.1957 32.7554 31.6703 32.7554C29.1449 32.7554 27.1742 30.6403 27.1742 27.9177C27.1742 25.195 29.1449 23.0799 31.6703 23.0799C34.1957 23.0799 36.1664 25.195 36.1664 27.9177ZM28.7093 27.9177C28.7093 29.7423 30.016 31.1399 31.6703 31.1399C33.3246 31.1399 34.6312 29.7423 34.6312 27.9177C34.6312 26.0931 33.3246 24.6954 31.6703 24.6954C30.016 24.6954 28.7093 26.0931 28.7093 27.9177Z" fill="#8E43E7"/>
 </svg>
