@@ -25,7 +25,6 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger,
-  SidebarFooter,
 } from "@/components/ui/sidebar"
 import Calculator from "@/components/calc-forge/Calculator"
 import { useToast } from "@/hooks/use-toast"
@@ -354,9 +353,6 @@ export default function Home() {
             )}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter>
-          {/* Footer content if any */}
-        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <div className="p-4 flex items-center justify-between">
@@ -403,7 +399,7 @@ export default function Home() {
                       <DialogDescription>
                         Give your new calculation a name to get started.
                       </DialogDescription>
-                    </Header>
+                    </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name-main" className="text-right">
@@ -432,3 +428,5 @@ export default function Home() {
     </SidebarProvider>
   )
 }
+
+    
