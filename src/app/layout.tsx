@@ -24,7 +24,6 @@ export default function RootLayout({
       <head>
         <title>CalcForge</title>
         <meta name="description" content="The CalcForge Calculator." />
-        <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
         <meta name="theme-color" content="#4285F4" />
