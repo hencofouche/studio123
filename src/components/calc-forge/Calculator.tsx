@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -46,8 +47,8 @@ function formatCurrency(value: number, currency: string) {
 
 function getEntryTotal(entry: LineItemEntry): number {
   if (entry.type === "fixed") {
-    // For fixed, value1 is quantity, value2 is price. Default quantity to 1.
-    return (entry.value1 || 1) * (entry.value2 || 0)
+    // For fixed, value1 is quantity, value2 is price. Default quantity to 0.
+    return (entry.value1 || 0) * (entry.value2 || 0)
   } else if (entry.type === "time" || entry.type === "weight" || entry.type === "volume") {
     // For time, value1 is minutes, value2 is rate per minute
     return (entry.value1 || 0) * (entry.value2 || 0)
@@ -139,7 +140,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
     handleEntryChange(entryId, field, parsedValue as number)
   }
   
-  const { calculatedLines, categorySummaries, total } = React.useMemo(() => {
+  const { categorySummaries, total } = React.useMemo(() => {
     const entryTotals: { [id: string]: number } = {};
     
     // First pass: calculate totals for all non-percentage entries
@@ -185,19 +186,19 @@ export default function Calculator({ template, onTemplateChange, values, onValue
             percentageAdjustments,
             total: totalWithPercentages,
         };
-    }).filter(summary => summary.total > 0);
+    }).filter(summary => summary.directTotal > 0);
 
     const uncategorizedPercentageEntries = values.filter(entry => !entry.defId && entry.type === 'percentage');
-    const finalCalculatedLines: CalculatedLine[] = uncategorizedPercentageEntries.map(entry => ({
+    const finalUncategorizedLines: CalculatedLine[] = uncategorizedPercentageEntries.map(entry => ({
         id: entry.id,
         name: entry.name || "Percentage",
         total: entryTotals[entry.id] || 0,
         type: 'percentage' as CalculationType
     }));
 
-    const newTotal = finalCategorySummaries.reduce((acc, cat) => acc + cat.total, 0) + finalCalculatedLines.reduce((acc, line) => acc + line.total, 0);
+    const newTotal = finalCategorySummaries.reduce((acc, cat) => acc + cat.total, 0) + finalUncategorizedLines.reduce((acc, line) => acc + line.total, 0);
 
-    return { calculatedLines: finalCalculatedLines, categorySummaries: finalCategorySummaries, total: newTotal };
+    return { categorySummaries: finalCategorySummaries, uncategorizedLines: finalUncategorizedLines, total: newTotal };
   }, [template.lines, values]);
 
 
@@ -213,7 +214,7 @@ export default function Calculator({ template, onTemplateChange, values, onValue
               <Input
                 id={`${entry.id}-quantity`}
                 type="number"
-                placeholder="1"
+                placeholder="0"
                 value={entry.value1 ?? ""}
                 onChange={(e) => handleNumericEntryChange(entry.id, "value1", e.target.value)}
               />
@@ -502,20 +503,8 @@ export default function Calculator({ template, onTemplateChange, values, onValue
                     {index < categorySummaries.length - 1 && <Separator className="my-2" />}
                   </div>
                 ))}
-
-                {calculatedLines.length > 0 && (
-                  <>
-                    <Separator className="my-2" />
-                    {calculatedLines.map(line => (
-                        <div key={line.id} className="flex justify-between text-muted-foreground">
-                            <span>{line.name} ({values.find(v => v.id === line.id)?.value1 || 0}%)</span>
-                            <span>{formatCurrency(line.total, template.currency)}</span>
-                        </div>
-                    ))}
-                  </>
-                )}
                 
-                {(categorySummaries.length > 0 || calculatedLines.length > 0) && <Separator className="my-2"/>}
+                {(categorySummaries.length > 0) && <Separator className="my-2"/>}
 
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
