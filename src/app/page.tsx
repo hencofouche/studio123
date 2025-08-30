@@ -173,7 +173,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${templateToExport.name.replace(/\s+/g, '_')}.json`;
+    a.download = `${templateToExport.name} TPSA Calculator.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -428,5 +428,3 @@ export default function Home() {
     </SidebarProvider>
   )
 }
-
-    
