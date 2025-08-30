@@ -5,7 +5,6 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
-import { usePwaUpdate } from '@/hooks/use-pwa-update';
 
 // This is a static export, but we have client components.
 // export const metadata: Metadata = {
@@ -19,14 +18,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  usePwaUpdate();
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <title>CalcForge</title>
         <meta name="description" content="The CalcForge Calculator." />
-        <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
         <meta name="theme-color" content="#09090b" />
