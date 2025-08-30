@@ -10,7 +10,6 @@ import { ThemeProvider } from '@/components/theme-provider';
 // export const metadata: Metadata = {
 //   title: 'CalcForge',
 //   description: 'The CalcForge Calculator.',
-//   manifest: '/manifest.json',
 // };
 
 export default function RootLayout({
