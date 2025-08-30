@@ -1,48 +1,28 @@
+
 {
   "name": "TPSA Calculator",
   "short_name": "TPSA Calc",
   "description": "The TPSA Calculator.",
   "start_url": "/",
-  "id": "/",
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
     }
   ],
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
-  "screenshots": [
+  "file_handlers": [
     {
-      "src": "screenshot-desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop View"
-    },
-    {
-      "src": "screenshot-mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile View"
+      "action": "/",
+      "accept": {
+        "application/json": [
+          ".json"
+        ]
+      }
     }
   ]
 }

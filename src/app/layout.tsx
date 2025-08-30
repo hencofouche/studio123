@@ -1,24 +1,34 @@
+
+"use client"
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
+import { usePwaUpdate } from '@/hooks/use-pwa-update';
 
-export const metadata: Metadata = {
-  title: 'TPSA Calculator',
-  description: 'The TPSA Calculator.',
-  manifest: '/manifest.json',
-};
+// This is a static export, but we have client components.
+// export const metadata: Metadata = {
+//   title: 'TPSA Calculator',
+//   description: 'The TPSA Calculator.',
+//   manifest: '/manifest.json',
+// };
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  usePwaUpdate();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <title>TPSA Calculator</title>
+        <meta name="description" content="The TPSA Calculator." />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
         <meta name="theme-color" content="#09090b" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
