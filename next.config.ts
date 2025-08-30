@@ -5,9 +5,6 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
-  // Solution: Disable the default behavior of generating icons.
-  // We will provide our own in the manifest.json.
-  generateEtc: false, 
   // Other PWA options...
 });
 
