@@ -8,8 +8,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 // This is a static export, but we have client components.
 // export const metadata: Metadata = {
-//   title: 'CalcForge',
-//   description: 'The CalcForge Calculator.',
+//   title: 'TPSA Calculator',
+//   description: 'The TPSA Calculator.',
 // };
 
 export default function RootLayout({
@@ -21,8 +21,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>CalcForge</title>
-        <meta name="description" content="The CalcForge Calculator." />
+        <title>TPSA Calculator</title>
+        <meta name="description" content="The TPSA Calculator." />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
