@@ -1,8 +1,42 @@
-<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="192" height="192" rx="32" fill="#18181B"/>
-<path d="M56 64H88" stroke="#A1A1AA" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M72 64V128" stroke="#A1A1AA" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M125.688 120.488L140.234 120.488C142.332 120.488 144.338 119.646 145.811 118.173C147.284 116.7 148.125 114.693 148.125 112.595L148.125 106.312C148.125 104.214 147.284 102.208 145.811 100.735C144.338 99.2621 142.332 98.4204 140.234 98.4204L113.812 98.4204" stroke="#A1A1AA" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M113.812 79.5796L148.125 79.5796" stroke="#A1A1AA" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M113.812 79.5796L113.812 120.489" stroke="#A1A1AA" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <defs>
+    <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+    <style>
+      .text { font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; fill: #282828; }
+    </style>
+  </defs>
+
+  <!-- Calculator Body -->
+  <rect x="10" y="10" width="80" height="80" rx="8" ry="8" fill="#1C1C1C"/>
+  <rect x="12" y="12" width="76" height="76" rx="6" ry="6" fill="#282828"/>
+
+  <!-- Screen -->
+  <rect x="18" y="18" width="64" height="18" rx="4" ry="4" fill="url(#gold-gradient)" />
+  <rect x="19" y="19" width="62" height="16" rx="3" ry="3" fill="#DAA520" />
+  <text x="50" y="30" class="text" text-anchor="middle">TPSA</text>
+
+  <!-- Buttons -->
+  <g id="buttons">
+    <!-- Row 1 -->
+    <rect x="20" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="36" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="52" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="68" y="40" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <!-- Row 2 -->
+    <rect x="20" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="36" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="52" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="68" y="52" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <!-- Row 3 -->
+    <rect x="20" y="64" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="36" y="64" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="52" y="64" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="68" y="64" width="20" height="8" rx="2" fill="url(#gold-gradient)" transform="translate(-8, 8) rotate(90 74 68)"/>
+    <!-- Row 4 -->
+    <rect x="20" y="76" width="28" height="8" rx="2" fill="url(#gold-gradient)"/>
+    <rect x="52" y="76" width="12" height="8" rx="2" fill="url(#gold-gradient)"/>
+  </g>
 </svg>
