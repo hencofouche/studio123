@@ -173,7 +173,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${templateToExport.name} TPSA Calculator.json`;
+    a.download = `${templateToExport.name}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -197,21 +197,25 @@ export default function Home() {
         }
         const importedData = JSON.parse(result);
         
-        if (!importedData.template || !importedData.values) {
-          throw new Error("Invalid JSON format for import.");
+        // Basic validation for the imported data structure
+        if (!importedData.template || typeof importedData.template.name !== 'string' || !Array.isArray(importedData.values)) {
+          throw new Error("Invalid or corrupted JSON file format.");
         }
         
         let newTemplate: Template = importedData.template;
         const newValues: LineItemValues = importedData.values;
 
-        // Ensure unique ID
+        // Ensure unique ID if it conflicts with an existing one
         if (templates.some(t => t.id === newTemplate.id)) {
             newTemplate.id = crypto.randomUUID();
         }
-        // Ensure unique name
-        if (templates.some(t => t.name === newTemplate.name)) {
-            newTemplate.name = `${newTemplate.name} (copy)`;
+        // Ensure unique name by appending (copy) if necessary
+        let finalName = newTemplate.name;
+        let copyCount = 1;
+        while (templates.some(t => t.name === finalName)) {
+            finalName = `${newTemplate.name} (copy ${copyCount++})`;
         }
+        newTemplate.name = finalName;
 
         setTemplates(prev => [...prev, newTemplate]);
         setAllValues(prev => ({...prev, [newTemplate.id]: newValues}));
@@ -231,7 +235,7 @@ export default function Home() {
           variant: "destructive",
         });
       } finally {
-        // Reset file input
+        // Reset file input to allow importing the same file again
         if(importFileInputRef.current) {
           importFileInputRef.current.value = "";
         }
@@ -428,3 +432,5 @@ export default function Home() {
     </SidebarProvider>
   )
 }
+
+    
