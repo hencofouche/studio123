@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -7,6 +8,8 @@ import {
   Sigma,
   Trash2,
   PanelLeft,
+  Download,
+  Upload
 } from "lucide-react"
 
 import type { Template, LineItemValues } from "@/lib/types"
@@ -65,6 +68,8 @@ export default function Home() {
   const [allValues, setAllValues] = useLocalStorage<{ [key: string]: LineItemValues }>("calc-forge-all-values", {})
   const [newTemplateName, setNewTemplateName] = React.useState("")
   const [isCreateDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const importFileInputRef = React.useRef<HTMLInputElement>(null);
+
 
   React.useEffect(() => {
     // On initial load, if the activeTemplateId from localStorage is invalid, reset it.
@@ -154,6 +159,88 @@ export default function Home() {
     }
   };
 
+  const handleExportTemplate = (id: string) => {
+    const templateToExport = templates.find(t => t.id === id);
+    if (!templateToExport) return;
+
+    const valuesToExport = allValues[id] || [];
+    const dataToExport = {
+      template: templateToExport,
+      values: valuesToExport,
+    };
+
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${templateToExport.name.replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Calculation Exported",
+      description: `"${templateToExport.name}" has been downloaded.`,
+    });
+  };
+
+  const handleImportTemplate = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const result = e.target?.result;
+        if (typeof result !== 'string') {
+          throw new Error("File could not be read properly.");
+        }
+        const importedData = JSON.parse(result);
+        
+        if (!importedData.template || !importedData.values) {
+          throw new Error("Invalid JSON format for import.");
+        }
+        
+        let newTemplate: Template = importedData.template;
+        const newValues: LineItemValues = importedData.values;
+
+        // Ensure unique ID
+        if (templates.some(t => t.id === newTemplate.id)) {
+            newTemplate.id = crypto.randomUUID();
+        }
+        // Ensure unique name
+        if (templates.some(t => t.name === newTemplate.name)) {
+            newTemplate.name = `${newTemplate.name} (copy)`;
+        }
+
+        setTemplates(prev => [...prev, newTemplate]);
+        setAllValues(prev => ({...prev, [newTemplate.id]: newValues}));
+        setActiveTemplateId(newTemplate.id);
+
+        toast({
+          title: "Calculation Imported",
+          description: `Successfully imported and switched to "${newTemplate.name}".`,
+        });
+
+      } catch (error) {
+        console.error("Import failed:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast({
+          title: "Import Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } finally {
+        // Reset file input
+        if(importFileInputRef.current) {
+          importFileInputRef.current.value = "";
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
+
 
   return (
     <SidebarProvider>
@@ -170,8 +257,8 @@ export default function Home() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <div className="p-2">
-            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <div className="p-2 space-y-2">
+             <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full">
                   <FilePlus2 />
@@ -205,6 +292,17 @@ export default function Home() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <input 
+              type="file" 
+              ref={importFileInputRef}
+              className="hidden" 
+              accept="application/json" 
+              onChange={handleImportTemplate} 
+            />
+            <Button variant="outline" className="w-full" onClick={() => importFileInputRef.current?.click()}>
+              <Upload />
+              <span>Import Calculation</span>
+            </Button>
           </div>
           <SidebarMenu>
             <li className="px-4 pt-2 pb-1 text-xs font-medium text-muted-foreground">
@@ -225,34 +323,39 @@ export default function Home() {
                   >
                     <span className="truncate">{template.name}</span>
                   </SidebarMenuButton>
-                   <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                       <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-destructive">
-                          <Trash2 className="size-4" />
-                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the "{template.name}" calculation.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteTemplate(template.id)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => handleExportTemplate(template.id)}>
+                      <Download className="size-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="size-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the "{template.name}" calculation.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteTemplate(template.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </SidebarMenuItem>
               ))
             )}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-          {/* ModeToggle was here */}
+          {/* Footer content if any */}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
@@ -300,7 +403,7 @@ export default function Home() {
                       <DialogDescription>
                         Give your new calculation a name to get started.
                       </DialogDescription>
-                    </DialogHeader>
+                    </Header>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name-main" className="text-right">
