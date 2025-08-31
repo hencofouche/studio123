@@ -9,7 +9,9 @@ import {
   Trash2,
   PanelLeft,
   Download,
-  Upload
+  Upload,
+  Heart,
+  AppWindow,
 } from "lucide-react"
 
 import type { Template, LineItemValues } from "@/lib/types"
@@ -51,7 +53,17 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PWAPrompt } from "@/components/pwa-prompt"
+
+// This interface is a subset of the BeforeInstallPromptEvent interface
+// to ensure we can use it even if the type isn't fully available in all TS libs.
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: Array<string>;
+  readonly userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
 
 
 const defaultTemplate: Template = {
@@ -69,6 +81,40 @@ export default function Home() {
   const [newTemplateName, setNewTemplateName] = React.useState("")
   const [isCreateDialogOpen, setCreateDialogOpen] = React.useState(false)
   const importFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [installPrompt, setInstallPrompt] = React.useState<BeforeInstallPromptEvent | null>(null);
+  const [isAppInstalled, setIsAppInstalled] = React.useState(false);
+
+  React.useEffect(() => {
+    // Check if the app is running in standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+    
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      const promptedEvent = event as BeforeInstallPromptEvent;
+      setInstallPrompt(promptedEvent);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) {
+      return;
+    }
+    await installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      toast({ title: "Installation Complete!", description: "The app has been added to your home screen." });
+      setIsAppInstalled(true);
+    }
+    setInstallPrompt(null);
+  };
 
 
   React.useEffect(() => {
@@ -307,6 +353,12 @@ export default function Home() {
               <Upload />
               <span>Import Calculation</span>
             </Button>
+            {installPrompt && !isAppInstalled && (
+              <Button variant="outline" className="w-full" onClick={handleInstallClick}>
+                <AppWindow />
+                <span>Install App</span>
+              </Button>
+            )}
           </div>
           <SidebarMenu>
             <li className="px-4 pt-2 pb-1 text-xs font-medium text-muted-foreground">
@@ -429,10 +481,7 @@ export default function Home() {
             </div>
           )}
         </main>
-        <PWAPrompt />
       </SidebarInset>
     </SidebarProvider>
   )
 }
-
-    
