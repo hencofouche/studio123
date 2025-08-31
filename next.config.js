@@ -1,34 +1,11 @@
 /** @type {import('next').NextConfig} */
 
-const withPWA = require("next-pwa")({
-  dest: "public",
+const withPWA = require('next-pwa')({
+  dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development" || process.env.TURBOPACK, // Disable PWA in dev and for turbopack
-  runtimeCaching: [
-    {
-      urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'google-fonts',
-        expiration: {
-          maxEntries: 4,
-          maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
-        }
-      }
-    },
-     {
-      urlPattern: /\.(?:images|jpg|jpeg|png|gif|svg|ico)$/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'images',
-        expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
-        }
-      }
-    },
-  ]
+  // Disabling PWA in development is causing issues, so we enable it always.
+  // disable: process.env.NODE_ENV === 'development',
 });
 
 const nextConfig = {
