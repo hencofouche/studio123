@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PWAPrompt } from "@/components/pwa-prompt"
 
 
 const defaultTemplate: Template = {
@@ -86,7 +87,7 @@ export default function Home() {
   const lineItemValues = React.useMemo(() => {
     if (!activeTemplateId) return [];
     return allValues[activeTemplateId] || [];
-  }, [allValues, activeTemplateId]);
+  }, [allValues, active_template_id]);
 
   const handleSetLineItemValues = (newValues: LineItemValues) => {
     if (!activeTemplateId) return;
@@ -428,6 +429,7 @@ export default function Home() {
             </div>
           )}
         </main>
+        <PWAPrompt />
       </SidebarInset>
     </SidebarProvider>
   )
