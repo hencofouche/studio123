@@ -30,7 +30,7 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
         <meta name="msapplication-TileColor" content="#FDB813" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="theme-color" content="#FDB813" />
+        <meta name="theme-color" content="#2d76d4" />
 
         <title>CalcForge</title>
         <meta name="description" content="A calculator for all your forging needs." />

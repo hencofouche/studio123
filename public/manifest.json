@@ -1,24 +1,35 @@
 {
-  "id": "/?source=pwa",
   "name": "CalcForge",
   "short_name": "CalcForge",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#212121",
-  "theme_color": "#FDB813",
   "description": "A calculator for all your forging needs.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#22272e",
+  "theme_color": "#2d76d4",
+  "orientation": "any",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": []
 }
