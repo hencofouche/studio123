@@ -27,7 +27,6 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [],
   "launch_handler": {
     "client_mode": "navigate-existing"
   }
