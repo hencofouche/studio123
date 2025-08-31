@@ -30,12 +30,12 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
         <meta name="msapplication-TileColor" content="#FDB813" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="theme-color" content="#212121" />
+        <meta name="theme-color" content="#FDB813" />
 
         <title>CalcForge</title>
         <meta name="description" content="A calculator for all your forging needs." />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
         
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
