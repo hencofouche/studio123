@@ -87,7 +87,7 @@ export default function Home() {
   const lineItemValues = React.useMemo(() => {
     if (!activeTemplateId) return [];
     return allValues[activeTemplateId] || [];
-  }, [allValues, active_template_id]);
+  }, [allValues, activeTemplateId]);
 
   const handleSetLineItemValues = (newValues: LineItemValues) => {
     if (!activeTemplateId) return;
