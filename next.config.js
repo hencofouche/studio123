@@ -29,6 +29,9 @@ const nextConfig = {
       },
     ],
   },
+  devIndicators: {
+    allowedDevOrigins: ["*.cloudworkstations.dev"],
+  },
 };
 
 module.exports = withPWA(nextConfig);
