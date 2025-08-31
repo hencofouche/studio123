@@ -21,21 +21,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="application-name" content="TPSA Calculator" />
+        <meta name="application-name" content="CalcForge" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="TPSA Calculator" />
+        <meta name="apple-mobile-web-app-title" content="CalcForge" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-config" content="/icons/browserconfig.xml" />
-        <meta name="msapplication-TileColor" content="#2B5797" />
+        <meta name="msapplication-TileColor" content="#4285F4" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="theme-color" content="#FDB813" />
+        <meta name="theme-color" content="#4285F4" />
 
-        <title>TPSA Calculator</title>
-        <meta name="description" content="The TPSA Calculator." />
+        <title>CalcForge</title>
+        <meta name="description" content="A calculator for all your forging needs." />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icons/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="/icons/icon-192x192.png" type="image/png" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         
         <link rel="preconnect" href="https://fonts.googleapis.com" />
