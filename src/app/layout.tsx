@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>CalcForge</title>
+        <title>Selah Creations Calculator</title>
         <meta name="description" content="A calculator for all your forging needs." />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#F0F4FF" />
