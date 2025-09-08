@@ -17,7 +17,6 @@ import type { Template, LineItemValues } from "@/lib/types"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { Button } from "@/components/ui/button"
 import {
-  SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -52,6 +51,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ClientProviderWrapper } from "@/components/provider-wrapper"
+
 
 // This interface is a subset of the BeforeInstallPromptEvent interface
 // to ensure we can use it even if the type isn't fully available in all TS libs.
@@ -221,7 +222,7 @@ export default function Home() {
     a.href = url;
     a.download = `${templateToExport.name}.json`;
     document.body.appendChild(a);
-a.click();
+    a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast({
@@ -292,7 +293,7 @@ a.click();
 
 
   return (
-    <SidebarProvider>
+    <ClientProviderWrapper>
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center justify-between p-2">
@@ -480,6 +481,6 @@ a.click();
           )}
         </main>
       </SidebarInset>
-    </SidebarProvider>
+    </ClientProviderWrapper>
   )
 }
