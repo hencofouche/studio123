@@ -1,6 +1,6 @@
 {
   "name": "Selah Creations Calculator",
-  "short_name": "Selah Calclulator",
+  "short_name": "Selah Calculator",
   "description": "A calculator for all your forging needs.",
   "icons": [
     {
@@ -16,6 +16,6 @@
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#F0F4EF",
-  "background_color": "#F0F4EF"
+  "theme_color": "#F0F4FF",
+  "background_color": "#F0F4FF"
 }

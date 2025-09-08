@@ -297,6 +297,7 @@ export default function Home() {
         <SidebarHeader>
           <div className="flex items-center justify-between p-2">
             <div className="flex items-center gap-2">
+              <Image src="/icons/icon.jpg" width={28} height={28} alt="Selah Creations Logo" className="rounded-sm" />
               <h1 className="text-xl font-bold tracking-tight text-foreground">
                 Selah Creations
               </h1>
