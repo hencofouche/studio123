@@ -221,7 +221,7 @@ export default function Home() {
     a.href = url;
     a.download = `${templateToExport.name}.json`;
     document.body.appendChild(a);
-    a.click();
+a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast({
