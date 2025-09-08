@@ -24,7 +24,7 @@ export default function RootLayout({
         <title>Selah Creations Calculator</title>
         <meta name="description" content="A calculator for all your forging needs." />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#F0F4EF" />
+        <meta name="theme-color" content="#F0F4FF" />
         <link rel="apple-touch-icon" href="/icons/icon.jpg"></link>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
