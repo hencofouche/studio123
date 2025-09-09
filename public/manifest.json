@@ -1,21 +1,28 @@
 {
+  "theme_color": "#f0f4ff",
+  "background_color": "#f0f4ff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
   "name": "Selah Creations Calculator",
   "short_name": "Selah Creations",
   "description": "A calculator for all your forging needs.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#F0F4FF",
-  "theme_color": "#F0F4FF",
   "icons": [
     {
-      "src": "/icons/icon.jpg",
+      "src": "/icons/icon.png",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon.jpg",
+      "src": "/icons/icon.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon.png",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/png"
     }
   ]
 }

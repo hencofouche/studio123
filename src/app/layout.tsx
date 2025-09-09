@@ -5,6 +5,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
+import { ClientProviderWrapper } from '@/components/provider-wrapper';
 
 // This is a static export, but we have client components.
 // export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default function RootLayout({
         <meta name="description" content="A calculator for all your forging needs." />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#F0F4FF" />
-        <link rel="apple-touch-icon" href="/icons/icon.jpg"></link>
+        <link rel="apple-touch-icon" href="/icons/icon.png"></link>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -37,7 +38,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ClientProviderWrapper>{children}</ClientProviderWrapper>
           <Toaster />
         </ThemeProvider>
       </body>
