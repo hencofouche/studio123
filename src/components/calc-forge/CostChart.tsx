@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -31,18 +32,26 @@ const COLORS = [
 const CustomTooltip = ({ active, payload, currency }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    if (!currency) return null;
+    
+    let formattedValue;
+    try {
+      if (!currency || currency.length < 3) {
+        throw new Error("Invalid currency");
+      }
+      formattedValue = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+      }).format(data.value);
+    } catch (e) {
+      formattedValue = data.value.toFixed(2);
+    }
+
     return (
       <div className="rounded-lg border bg-background p-2 shadow-sm">
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col space-y-1">
             <span className="text-sm text-muted-foreground">{data.name}</span>
-            <span className="font-bold">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: currency,
-              }).format(data.value)}
-            </span>
+            <span className="font-bold">{formattedValue}</span>
           </div>
         </div>
       </div>
@@ -115,3 +124,5 @@ export default function CostChart({ data, currency }: CostChartProps) {
     </Card>
   )
 }
+
+    

@@ -38,11 +38,16 @@ interface CalculatedLine {
 }
 
 function formatCurrency(value: number, currency: string) {
-  if (!currency) return ""
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency,
-  }).format(value)
+  try {
+    if (!currency || currency.length < 3) return value.toFixed(2); // Return a basic format if currency is invalid
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(value);
+  } catch (error) {
+    console.warn("Invalid currency code:", currency);
+    return value.toFixed(2); // Fallback for invalid currency codes
+  }
 }
 
 function getEntryTotal(entry: LineItemEntry): number {
@@ -612,3 +617,5 @@ function MultiSelect({ options, selected, onChange, className, placeholder = "Se
     </Popover>
   );
 }
+
+    
