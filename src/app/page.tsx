@@ -11,6 +11,7 @@ import {
   Download,
   Upload,
   AppWindow,
+  Settings,
 } from "lucide-react"
 
 import type { Template, LineItemValues } from "@/lib/types"
@@ -52,6 +53,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ClientProviderWrapper } from "@/components/provider-wrapper"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 
 // This interface is a subset of the BeforeInstallPromptEvent interface
@@ -204,6 +206,13 @@ export default function Home() {
       handleUpdateTemplate({ ...activeTemplate, name: newName });
     }
   };
+  
+  const handleCurrencyChange = (newCurrency: string) => {
+    if (activeTemplate) {
+      handleUpdateTemplate({ ...activeTemplate, currency: newCurrency.toUpperCase() });
+    }
+  };
+
 
   const handleExportTemplate = (id: string) => {
     const templateToExport = templates.find(t => t.id === id);
@@ -302,7 +311,39 @@ export default function Home() {
                 Selah Creations
               </h1>
             </div>
-            <ModeToggle />
+            <div className="flex items-center gap-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" disabled={!activeTemplate}>
+                    <Settings className="size-5" />
+                    <span className="sr-only">Settings</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64">
+                   <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <h4 className="font-medium leading-none">Settings</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Manage settings for the current calculation.
+                        </p>
+                      </div>
+                      <div className="grid gap-2">
+                        <div className="grid grid-cols-3 items-center gap-4">
+                          <Label htmlFor="currency">Currency</Label>
+                          <Input
+                            id="currency"
+                            value={activeTemplate?.currency || ''}
+                            onChange={(e) => handleCurrencyChange(e.target.value)}
+                            className="col-span-2 h-8"
+                            placeholder="e.g. ZAR"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </PopoverContent>
+              </Popover>
+              <ModeToggle />
+            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -484,5 +525,3 @@ export default function Home() {
     </ClientProviderWrapper>
   )
 }
-
-    
