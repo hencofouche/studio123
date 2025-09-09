@@ -69,7 +69,7 @@ interface BeforeInstallPromptEvent extends Event {
 const defaultTemplate: Template = {
   id: 'default',
   name: 'New Calculation',
-  currency: 'USD',
+  currency: 'ZAR',
   lines: []
 }
 
@@ -484,3 +484,5 @@ export default function Home() {
     </ClientProviderWrapper>
   )
 }
+
+    
